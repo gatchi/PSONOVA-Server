@@ -31,6 +31,13 @@
 //
 // Allow quests to be reloaded while people are in them... somehow!
 
+/* Local To do:
+ *
+ * Allow safe exit & restart
+ * Allow simple mail/announcements from terminal
+ * Automatic shutdown mail when not using quick shutdown
+ */
+
 #define SERVER_VERSION "Wine 0.1a"  // Based of of 0.144
 #define USEADDR_ANY
 #define TCP_BUFFER_SIZE 64000
