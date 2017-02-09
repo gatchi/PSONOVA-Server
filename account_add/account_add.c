@@ -244,11 +244,11 @@ main( int argc, char * argv[] )
 		mysql_close( myData ) ;
 		return 1 ;
 	}
-#else
+#endif
+#ifdef NO_SQL
 		num_accounts = 0;
 		LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
 #endif
-
 
 	printf ("Tethealla Server Account Addition\n");
 	printf ("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
@@ -314,7 +314,7 @@ main( int argc, char * argv[] )
 		if ( ( strlen (inputstr ) < 17 ) || ( strlen (inputstr) < 8 ) )
 		{
 			memcpy (&password[0], &inputstr[0], 17 );
-			printf ("Verify password: ");
+			/*printf ("Verify password: ");
 			scanf ("%s", inputstr );
 			memcpy (&password_check[0], &inputstr[0], 17 );
 			pw_same = 1;
@@ -326,7 +326,8 @@ main( int argc, char * argv[] )
 			if (pw_same)
 				pw_ok = 1;
 			else
-				printf ("The input passwords did not match.\n");
+				printf ("The input passwords did not match.\n");*/
+			pw_ok = 1;
 		}
 		else
 			printf ("Desired password length should be 16 characters or less.\n");
@@ -355,7 +356,10 @@ main( int argc, char * argv[] )
 			}
 			else
 				num_rows = 0;
-#else
+#endif
+#ifndef NO_SQL
+		// WARNING!! This does not stop people from making new accounts with the same email as it counts different
+		// letter cases as unique emails. For example, email@gmail.com =/= Email@gmail.com!!
 		sprintf (&myQuery[0], "SELECT * from account_data WHERE email='%s'", email );
 		//printf ("Executing MySQL query: %s\n", myQuery );
 		if ( ! mysql_query ( myData, &myQuery[0] ) )
@@ -372,9 +376,9 @@ main( int argc, char * argv[] )
 			return 1;
 		}
 #endif
-		if (!num_rows)
+		if (!num_rows) // If not in the database already
 		{
-			printf ("Verify e-mail address: ");
+			/* printf ("Verify e-mail address: ");
 			scanf ("%s", inputstr );
 			memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
 			pw_same = 1;
@@ -386,12 +390,14 @@ main( int argc, char * argv[] )
 			if (pw_same)
 				pw_ok = 1;
 			else
-				printf ("The input e-mail addresses did not match.\n");
+				printf ("The input e-mail addresses did not match.\n"); */
+			pw_ok = 1;
 		}
 	}
 #ifdef NO_SQL
 	num_rows = num_accounts;
-#else
+#endif
+#ifndef NO_SQL
 	// Check to see if any accounts already registered in the database at all.
 	sprintf (&myQuery[0], "SELECT * from account_data" );
 	//printf ("Executing MySQL query: %s\n", myQuery );
@@ -467,9 +473,10 @@ main( int argc, char * argv[] )
 	//printf ("Executing MySQL query: %s\n", myQuery );
 #ifdef NO_SQL
 	printf ("Account added.");
-#else
+#endif
+#ifndef NO_SQL
 	if ( ! mysql_query ( myData, &myQuery[0] ) )
-		printf ("Account successfully added to the database!");
+		printf ("Account successfully added to the database!\n");
 	else
 	{
 		printf ("Couldn't query the MySQL server.\n");
