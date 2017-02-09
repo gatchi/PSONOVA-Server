@@ -1,0 +1,10 @@
+TODO
+=====
+- enable safe shutdown for all servers
+  - patch
+  - ship
+  - login
+  
+- enable sending of simple mail/announcements from terminal
+
+- make servers read from text files when needed, instead of loading once from startup
