@@ -525,6 +525,7 @@ void start_encryption(BANANA* connect)
 
 	for (c=0;c<serverNumConnections;c++)
 	{
+		// Is this taking grabbing a value from a list from a list?  Maybe its a block list...
 		connectNum = serverConnectionList[c];
 		workConnect = connections[connectNum];
 		//debug ("%s comparing to %s", (char*) &workConnect->IP_Address[0], (char*) &connect->IP_Address[0]);
@@ -559,6 +560,7 @@ void start_encryption(BANANA* connect)
 			initialize_connection (workConnect);
 		}
 	}
+	
 	memcpy (&connect->sndbuf[0], &Packet02[0], sizeof (Packet02));
 	for (c=0;c<8;c++)
 		connect->sndbuf[0x44+c] = (unsigned char) rand() % 255;
@@ -1020,7 +1022,7 @@ int main( int argc, char * argv[] )
 	MSG msg;
 
 	FILE* fp;
-	//int wserror;
+	int wserror;
 	unsigned char tmprcv[TCP_BUFFER_SIZE];
 	unsigned connectNum;
 	unsigned to_send, checksum;
@@ -1422,7 +1424,7 @@ int main( int argc, char * argv[] )
 
 			if (FD_ISSET (data_sockfd, &ReadFDs))
 			{
-				// Someone's attempting to connect to the patch server.
+				// Client is being redirected to data port using the bind private bind address
 				ch = free_connection();
 				if (ch != 0xFFFF)
 				{
@@ -1458,11 +1460,9 @@ int main( int argc, char * argv[] )
 						// Read shit.
 						if ( ( pkt_len = recv (workConnect->plySockfd, &tmprcv[0], TCP_BUFFER_SIZE - 1, 0) ) <= 0 )
 						{
-							/*
 							wserror = WSAGetLastError();
 							printf ("Could not read data from client...\n");
 							printf ("Socket Error %u.\n", wserror );
-							*/
 							initialize_connection (workConnect);
 						}
 						else
@@ -1549,11 +1549,9 @@ int main( int argc, char * argv[] )
 								data_send, 0);
 							if (bytes_sent == SOCKET_ERROR)
 							{
-								/*
 								wserror = WSAGetLastError();
 								printf ("Could not send data to client...\n");
 								printf ("Socket Error %u.\n", wserror );
-								*/
 								initialize_connection (workConnect);							
 							}
 							else
