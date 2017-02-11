@@ -4541,7 +4541,9 @@ unsigned AddToInventory (INVENTORY_ITEM* i, unsigned count, int shop, BANANA* cl
 	return item_added;
 }
 
-
+/* Request char data from server or send char data to server
+ * (when not using a temp char).
+ */
 void ShipSend04 (unsigned char command, BANANA* client, ORANGE* ship)
 {
 	//unsigned ch;
@@ -5197,6 +5199,7 @@ void LogonProcessPacket (ORANGE* ship)
 		switch (ship->decryptbuf[0x05])
 		{
 		case 0x00:
+			// ???
 			{
 				gcn = *(unsigned *) &ship->decryptbuf[0x06];
 				for (ch=0;ch<serverNumConnections;ch++)
@@ -5212,6 +5215,7 @@ void LogonProcessPacket (ORANGE* ship)
 			}
 			break;
 		case 0x01:
+			// Guild card search
 			{
 				// Someone's doing a guild card search...   Check to see if that guild card is on our ship...
 
@@ -15088,7 +15092,7 @@ int main()
 	// Initialize connection to winsock
 	WSAStartup(MAKEWORD(1,1), &winsock_data);
 	
-	printf ("Loading THEEEEEEE configuration from ship.ini ... ");
+	printf ("Loading the configuration from ship.ini ... ");
 #ifdef LOG_60
 	// Start debugging
 	debugfile = fopen ("60packets.txt", "a");
