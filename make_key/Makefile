@@ -1,7 +1,7 @@
 # make_key Makefile
 
 make_key: make_key.o mtwist.o
-	gcc -o make_key make_key.o -L../mysql/lib -llibmysql mtwist.o
+	gcc -o ../bin/make_key make_key.o -L../mysql/lib -llibmysql mtwist.o
 
 make_key.o: make_key.c
 	gcc -I../mysql/include -c make_key.c
