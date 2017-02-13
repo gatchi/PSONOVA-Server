@@ -8,3 +8,5 @@ TODO
 - enable sending of simple mail/announcements from terminal
 
 - make servers read from text files when needed, instead of loading once from startup
+
+- accound add bug

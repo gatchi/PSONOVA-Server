@@ -17,7 +17,7 @@ This source is under no copyright.
 typedef struct st_localgm
 {
     unsigned int guildcard;
-    int level;
+    int level;  // 16-bits
 } LOCALGM;
 
 LOCALGM localgms[100];

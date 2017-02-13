@@ -11333,6 +11333,7 @@ void WriteGM(char *fmt, ...)
 
 char character_file[255];
 
+// GM commands found here
 void Send06 (BANANA* client)
 {
 	FILE* fp;
@@ -11510,6 +11511,7 @@ void Send06 (BANANA* client)
 			}
 
 			// Process GM commands
+			// The second argument to playerHasRight() is the bit position of the maks of the command
 
 			if ( ( !strcmp ( myCommand, "event" ) ) && ( (client->isgm) || (playerHasRights(client->guildcard, 0))) )
 			{
@@ -13397,7 +13399,7 @@ void AddTeamMember ( unsigned teamid, unsigned guildcard, ORANGE* ship )
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x0A );
 }
 
-
+// Team stuff
 void CommandEA (BANANA* client, ORANGE* ship)
 {
 	unsigned connectNum;
