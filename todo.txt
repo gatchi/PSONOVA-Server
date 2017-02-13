@@ -1,5 +1,15 @@
 TODO
 =====
+- setup test server and make test client
+  - cant do this until patch server port can be configured through teth.ini or patch.ini
+    ! jk, just run the server literally locally, on your laptop
+
+- name color bug
+
+- make localgms.ini more user friendly
+
+- add sample inis and such to the bin category (or rename to "install" or something)
+
 - enable safe shutdown for all servers
   - patch
   - ship
@@ -10,3 +20,5 @@ TODO
 - make servers read from text files when needed, instead of loading once from startup
 
 - accound add bug
+
+- dex on HUcaseals does nothing?

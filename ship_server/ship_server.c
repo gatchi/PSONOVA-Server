@@ -11481,7 +11481,6 @@ void Send06 (BANANA* client)
 				}
 			}
 
-
 			if ( !strcmp ( myCommand, "npc" ) )
 			{
 				if ( myCmdArgs == 0 )
@@ -11554,7 +11553,7 @@ void Send06 (BANANA* client)
 				}
 			}
 
-			if (( !strcmp ( myCommand, "item" ) )  && (client->isgm))
+			if ( ( !strcmp ( myCommand, "item" ) )  && ( (client->isgm) || (playerHasRights(client->guildcard, 1))) )
 			{
 				// Item creation...
 				if ( client->lobbyNum < 0x10 )
@@ -11668,7 +11667,7 @@ void Send06 (BANANA* client)
 						}								
 			}
 
-			if (( !strcmp ( myCommand, "give" ) )  && (client->isgm))
+			if ( ( !strcmp ( myCommand, "give" ) )  && ( (client->isgm) || (playerHasRights(client->guildcard, 1))) )
 			{
 				// Insert item into inventory
 				if ( client->lobbyNum < 0x10 )
