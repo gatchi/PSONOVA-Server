@@ -39,11 +39,11 @@
 #include	"bbtable.h"
 #include	"prs.cpp"
 
-#define MAX_SIMULTANEOUS_CONNECTIONS 6
+#define MAX_SIMULTANEOUS_CONNECTIONS 6  // per IP address
 #define LOGIN_COMPILED_MAX_CONNECTIONS 300
 #define SHIP_COMPILED_MAX_CONNECTIONS 50
 #define MAX_EB02 800000
-#define SERVER_VERSION "Wine 0.1a"  // Based off of 0.048
+#define SERVER_VERSION "Wine 0.1a" // Based off of Teth 0.048
 #define MAX_ACCOUNTS 2000
 #define MAX_DRESS_FLAGS 500
 #define DRESS_FLAG_EXPIRY 7200
@@ -53,6 +53,7 @@ const char *PSO_CLIENT_VER_STRING = "TethVer12513";
 #define PSO_CLIENT_VER 0x41
 
 //#define USEADDR_ANY
+#define SHIP_PORT 3455
 #define DEBUG_OUTPUT
 #define TCP_BUFFER_SIZE 64000
 #define PACKET_BUFFER_SIZE ( TCP_BUFFER_SIZE * 16 )
@@ -5831,7 +5832,7 @@ main( int argc, char * argv[] )
 
 	/* Open the Ship Port... */
 
-	printf ("Opening ship port 3455 for connections.\n" );
+	printf ("Opening ship port %d for connections.\n", SHIP_PORT );
 
 #ifdef USEADDR_ANY
 	ship_in.s_addr = INADDR_ANY;
@@ -5841,7 +5842,7 @@ main( int argc, char * argv[] )
 	else
 		*(unsigned *) &ship_in.s_addr = *(unsigned *) &serverIP[0];
 #endif
-	ship_sockfd = tcp_sock_open( ship_in, 3455 );
+	ship_sockfd = tcp_sock_open( ship_in, SHIP_PORT );
 
 	tcp_listen (ship_sockfd);
 
