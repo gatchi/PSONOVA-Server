@@ -4337,8 +4337,8 @@ void ShipProcessPacket (ORANGE* ship)
 						break;
 					}
 				}
-#ifndef NO_SQL
 #endif
+#ifndef NO_SQL
 				sprintf (&myQuery[0], "SELECT * from security_data WHERE guildcard='%u'", gcn );
 				// Nom nom nom
 				if ( ! mysql_query ( myData, &myQuery[0] ) )
