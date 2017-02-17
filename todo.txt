@@ -1,15 +1,11 @@
 TODO
 =====
-- fix Makefiles again
-  - finish ship_server
 
 - replace libraries with sources with DLLs or something (make DLLs?)
 
 - make shipin port (login_server.c) configurable via text file
 
 - replace config files with json files
-
-- name color bug
 
 - make localgms.ini more user friendly
 
@@ -19,6 +15,9 @@ TODO
 
 - make servers read from text files when needed, instead of loading once from startup
 
+
+Bugs
+----
 - accound add bug
   ! might have something to do with gets(), cause "could not bind to port/hit enter" in login_server.c has a similar effect
 
