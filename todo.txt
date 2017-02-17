@@ -1,24 +1,29 @@
 TODO
 =====
-- setup test server and make test client
-  - cant do this until patch server port can be configured through teth.ini or patch.ini
-    ! jk, just run the server literally locally, on your laptop
+- fix Makefiles again
+  - finish ship_server
+
+- replace libraries with sources with DLLs or something (make DLLs?)
+
+- make shipin port (login_server.c) configurable via text file
+
+- replace config files with json files
 
 - name color bug
 
 - make localgms.ini more user friendly
 
 - add sample inis and such to the bin category (or rename to "install" or something)
-
-- enable safe shutdown for all servers
-  - patch
-  - ship
-  - login
   
 - enable sending of simple mail/announcements from terminal
 
 - make servers read from text files when needed, instead of loading once from startup
 
 - accound add bug
+  ! might have something to do with gets(), cause "could not bind to port/hit enter" in login_server.c has a similar effect
 
 - dex on HUcaseals does nothing?
+
+- bug when shipkey.bin existts and matches login shipkey.bin but doesnt match the entry in the sql database (no entry) (login drops ship server repeatedly, as if timing out, no good error messages, no authentication error messages) (soly says check out LoginProcessPacket)
+
+- visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up. 
