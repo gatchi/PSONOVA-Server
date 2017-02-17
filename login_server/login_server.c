@@ -53,7 +53,7 @@ const char *PSO_CLIENT_VER_STRING = "TethVer12513";
 #define PSO_CLIENT_VER 0x41
 
 //#define USEADDR_ANY
-#define SHIP_PORT 3455
+#define SHIP_LISTEN_PORT 3455
 #define DEBUG_OUTPUT
 #define TCP_BUFFER_SIZE 64000
 #define PACKET_BUFFER_SIZE ( TCP_BUFFER_SIZE * 16 )
@@ -5832,7 +5832,7 @@ main( int argc, char * argv[] )
 
 	/* Open the Ship Port... */
 
-	printf ("Opening ship port %d for connections.\n", SHIP_PORT );
+	printf ("Opening ship port %d for connections.\n", SHIP_LISTEN_PORT );
 
 #ifdef USEADDR_ANY
 	ship_in.s_addr = INADDR_ANY;
@@ -5842,7 +5842,7 @@ main( int argc, char * argv[] )
 	else
 		*(unsigned *) &ship_in.s_addr = *(unsigned *) &serverIP[0];
 #endif
-	ship_sockfd = tcp_sock_open( ship_in, SHIP_PORT );
+	ship_sockfd = tcp_sock_open( ship_in, SHIP_LISTEN_PORT );
 
 	tcp_listen (ship_sockfd);
 
@@ -6462,7 +6462,7 @@ int tcp_sock_connect(char* dest_addr, int port)
 	return(fd);
 }
 
-/*****************************************************************************/
+// TODO: make this take in a sockaddr in instead
 int tcp_sock_open(struct in_addr ip, int port)
 {
 	int fd, turn_on_option_flag = 1, rcSockopt;
