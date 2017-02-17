@@ -40,6 +40,7 @@
 
 #define SERVER_VERSION "Wine 0.1a"  // Based of of 0.144
 #define USEADDR_ANY
+#define LOGON_PORT 3455
 #define TCP_BUFFER_SIZE 64000
 #define PACKET_BUFFER_SIZE ( TCP_BUFFER_SIZE * 16 )
 //#define LOG_60
@@ -127,7 +128,8 @@ void debug(char *fmt, ...);
 void debug_perror(char * msg);
 void tcp_listen (int sockfd);
 int tcp_accept (int sockfd, struct sockaddr *client_addr, int *addr_len );
-int tcp_sock_connect(char* dest_addr, int port);
+//int tcp_sock_connect(char* dest_addr, int port);
+int tcp_sock_connect(struct sockaddr_in sock);
 int tcp_sock_open(struct in_addr ip, int port);
 
 void encryptcopy (BANANA* client, const unsigned char* src, unsigned size);
@@ -956,9 +958,9 @@ void initialize_logon()
 
 	logon_ready = 0;
 	logon_tick = 0;
-	logon = &logon_structure;	// ????
-	// I think htis says, if socket is bound already, unbind
-	if ( logon->sockfd >= 0 )
+	logon = &logon_structure;	// ????  it almost looks like logon exists only to point to logon_structure
+	
+	if ( logon->sockfd >= 0 )  // I think htis says, if socket is bound already, unbind
 		closesocket ( logon->sockfd );
 	memset (logon, 0, sizeof (ORANGE));  // blank the whole struct instance for some reason
 	logon->sockfd = -1;
@@ -969,25 +971,22 @@ void initialize_logon()
 	// Into a inaddr struct, is a (cast) unsigned long int representation
 	// of the logon server's ip address.
 	// This is the actual logon initialization.
-	*(unsigned *) &logon->_ip.s_addr = *(unsigned *) &loginIP[0];
+	//*(unsigned *) &logon->_ip.s_addr = *(unsigned *) &loginIP[0];
+	*(unsigned *) &logon->sock.sin_addr.s_addr = *(unsigned *) &loginIP[0];
+	*(unsigned short *) &logon->sock.sin_port = htons(LOGON_PORT);
+	*(short *) &logon->sock.sin_family = AF_INET;
+	// For later change:
+	// logon_structure.sock.sin_addr.s_addr = *(unsigned *) $loginIP[0];
+	// logon_structure.sock.sin_port = htons(LOGON_PORT);
+	// logon_structure.sin_family = AF_INET;
 }
 
-/*
- * This is the actual logon connect function!
- */
 void reconnect_logon()
 {
-	// This is so weird - the initialization puts in a long version of the IP address
-	// into a struct.  But that struct isnt used here for connection, except to
-	// convert back to a string for tcp_sock_connect.
-	// I'm completely unsure why any of the stuff in initialize_logon happens at all.
-	// Also - why custom function instead of using winsock2 connect()?
-	//
-	// Anyway, this isnt the ship starting to serve.  I guess the logon server has to be
-	// running first, and then... the ship connects to it for something.
-	// 
+	// This function seems to be for when the ship server loses connection with the logon server
 
-	logon->sockfd = tcp_sock_connect (  inet_ntoa (logon->_ip), 3455 );
+	//logon->sockfd = tcp_sock_connect (  inet_ntoa (logon->_ip), LOGON_PORT );
+	logon->sockfd = tcp_sock_connect ( logon->sock );
 	if (logon->sockfd >= 0)
 	{
 		printf ("Connection successful!\n");
@@ -16272,13 +16271,13 @@ int tcp_accept (int sockfd, struct sockaddr *client_addr, int *addr_len )
 	return (fd);
 }
 
-int tcp_sock_connect(char* dest_addr, int port)
+int tcp_sock_connect(struct sockaddr_in sock)
 {
 	int fd;
-	struct sockaddr_in sa;
+	//struct sockaddr_in sa;
 
 	/* Clear it out */
-	memset((void *)&sa, 0, sizeof(sa));
+	//memset((void *)&sa, 0, sizeof(sa));
 
 	fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -16288,12 +16287,12 @@ int tcp_sock_connect(char* dest_addr, int port)
 	else
 	{
 
-		memset (&sa, 0, sizeof(sa));
-		sa.sin_family = AF_INET;
-		sa.sin_addr.s_addr = inet_addr (dest_addr);
-		sa.sin_port = htons((unsigned short) port);
+		//memset (&sa, 0, sizeof(sa));  // Why is this done twice?
+		//sa.sin_family = AF_INET;
+		//sa.sin_addr.s_addr = inet_addr (dest_addr);
+		//sa.sin_port = htons((unsigned short) port);
 
-		if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)) < 0)
+		if (connect(fd, (struct sockaddr*) &sock, sizeof(sock)) < 0)
 		{
 			debug_perror("Could not make TCP connection");
 			return -1;

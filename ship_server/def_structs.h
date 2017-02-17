@@ -416,7 +416,8 @@ struct rc4_key {
 
 typedef struct st_orange {
 	int sockfd;
-	struct in_addr _ip;
+	//struct in_addr _ip;
+	struct sockaddr_in sock;
 	unsigned char rcvbuf [TCP_BUFFER_SIZE];
 	unsigned long rcvread;
 	unsigned long expect;
