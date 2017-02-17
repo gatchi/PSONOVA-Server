@@ -1,11 +1,14 @@
 TODO
 =====
+- remove redundant "logon" pointer in ship_server.c
+  ! something hecked up around line 15921
 
 - replace libraries with sources with DLLs or something (make DLLs?)
 
 - make shipin port (login_server.c) configurable via text file
 
-- replace config files with json files
+- add json generation for server settings
+  - keep ini files for compatibility (and speed of setup), use JSONs for settings changes
 
 - make localgms.ini more user friendly
 
@@ -13,7 +16,7 @@ TODO
   
 - enable sending of simple mail/announcements from terminal
 
-- make servers read from text files when needed, instead of loading once from startup
+- rename ORANGE and BANANA
 
 
 Bugs
@@ -25,4 +28,7 @@ Bugs
 
 - bug when shipkey.bin existts and matches login shipkey.bin but doesnt match the entry in the sql database (no entry) (login drops ship server repeatedly, as if timing out, no good error messages, no authentication error messages) (soly says check out LoginProcessPacket)
 
-- visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up. 
+- visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up.
+
+- cant open trade window
+  - trade window can be prepared and sent but not received.
