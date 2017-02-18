@@ -414,7 +414,7 @@ struct rc4_key {
 
 /* Connected Logon Server Structure */
 
-typedef struct st_orange {
+typedef struct st_server {
 	int sockfd;
 	//struct in_addr _ip;
 	struct sockaddr_in sock;
@@ -434,7 +434,7 @@ typedef struct st_orange {
 	struct rc4_key cs_key;
 	struct rc4_key sc_key;
 	unsigned last_ping;
-} ORANGE;
+} SERVER;
 
 
 /* Ship List Structure (Assembled from Logon Packet) */

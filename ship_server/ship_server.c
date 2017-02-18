@@ -116,8 +116,8 @@ extern unsigned long	mt_lrand(void);	/* Generate 32-bit random value */
 char* Unicode_to_ASCII (unsigned short* ucs);
 void WriteLog(char *fmt, ...);
 void WriteGM(char *fmt, ...);
-void ShipSend04 (unsigned char command, BANANA* client, ORANGE* ship);
-void ShipSend0E (ORANGE* ship);
+void ShipSend04 (unsigned char command, BANANA* client, SERVER* ship);
+void ShipSend0E (SERVER* ship);
 void Send01 (const char *text, BANANA* client);
 void ShowArrows (BANANA* client, int to_all);
 unsigned char* MakePacketEA15 (BANANA* client);
@@ -136,8 +136,8 @@ void encryptcopy (BANANA* client, const unsigned char* src, unsigned size);
 void decryptcopy (unsigned char* dest, const unsigned char* src, unsigned size);
 
 void prepare_key(unsigned char *keydata, unsigned len, struct rc4_key *key);
-void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_size );
-void decompressShipPacket ( ORANGE* ship, unsigned char* dest, unsigned char* src );
+void compressShipPacket ( SERVER* ship, unsigned char* src, unsigned long src_size );
+void decompressShipPacket ( SERVER* ship, unsigned char* dest, unsigned char* src );
 int qflag (unsigned char* flag_data, unsigned flag, unsigned difficulty);
 
 /* variables */
@@ -771,7 +771,7 @@ void load_config_file()
 	load_mask_file();
 }
 
-ORANGE logon;
+SERVER logon;
 BANANA * connections[SHIP_COMPILED_MAX_CONNECTIONS];
 BANANA * workConnect;
 unsigned logon_tick = 0;
@@ -4534,7 +4534,7 @@ unsigned AddToInventory (INVENTORY_ITEM* i, unsigned count, int shop, BANANA* cl
 /* Request char data from server or send char data to server
  * (when not using a temp char).
  */
-void ShipSend04 (unsigned char command, BANANA* client, ORANGE* ship)
+void ShipSend04 (unsigned char command, BANANA* client, SERVER* ship)
 {
 	//unsigned ch;
 
@@ -4568,7 +4568,7 @@ void ShipSend04 (unsigned char command, BANANA* client, ORANGE* ship)
 	}
 }
 
-void ShipSend0E (ORANGE* ship)
+void ShipSend0E (SERVER* ship)
 {
 	if (logon_ready)
 	{
@@ -4580,7 +4580,7 @@ void ShipSend0E (ORANGE* ship)
 	}
 }
 
-void ShipSend0D (unsigned char command, BANANA* client, ORANGE* ship)
+void ShipSend0D (unsigned char command, BANANA* client, SERVER* ship)
 {
 	ship->encryptbuf[0x00] = 0x0D;
 	switch (command)
@@ -4596,7 +4596,7 @@ void ShipSend0D (unsigned char command, BANANA* client, ORANGE* ship)
 	}
 }
 
-void ShipSend0B (BANANA* client, ORANGE* ship)
+void ShipSend0B (BANANA* client, SERVER* ship)
 {
 	ship->encryptbuf[0x00] = 0x0B;
 	ship->encryptbuf[0x01] = 0x00;
@@ -4742,7 +4742,7 @@ void FixItem (ITEM* i )
 
 const char lobbyString[] = { "L\0o\0b\0b\0y\0 \0" };
 
-void LogonProcessPacket (ORANGE* ship)
+void LogonProcessPacket (SERVER* ship)
 {
 	unsigned gcn, ch, ch2, connectNum;
 	unsigned char episode, part;
@@ -12249,7 +12249,7 @@ void CommandED(BANANA* client)
 	}
 }
 
-void Command40(BANANA* client, ORANGE* ship)
+void Command40(BANANA* client, SERVER* ship)
 {
 	// Guild Card Search
 
@@ -13068,7 +13068,7 @@ void CommandD9 (BANANA* client)
 
 void AddGuildCard (unsigned myGC, unsigned friendGC, unsigned char* friendName, 
 				   unsigned char* friendText, unsigned char friendSecID, unsigned char friendClass,
-				   ORANGE* ship)
+				   SERVER* ship)
 {
 	// Instruct the logon server to add the guild card
 
@@ -13083,7 +13083,7 @@ void AddGuildCard (unsigned myGC, unsigned friendGC, unsigned char* friendName,
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0xD4 );
 }
 
-void DeleteGuildCard (unsigned myGC, unsigned friendGC, ORANGE* ship)
+void DeleteGuildCard (unsigned myGC, unsigned friendGC, SERVER* ship)
 {
 	// Instruct the logon server to delete the guild card
 
@@ -13094,7 +13094,7 @@ void DeleteGuildCard (unsigned myGC, unsigned friendGC, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x0A );
 }
 
-void ModifyGuildCardComment (unsigned myGC, unsigned friendGC, unsigned short* n, ORANGE* ship)
+void ModifyGuildCardComment (unsigned myGC, unsigned friendGC, unsigned short* n, SERVER* ship)
 {
 	unsigned s = 1;
 	unsigned short* g;
@@ -13126,7 +13126,7 @@ void ModifyGuildCardComment (unsigned myGC, unsigned friendGC, unsigned short* n
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x4E );
 }
 
-void SortGuildCard (BANANA* client, ORANGE* ship)
+void SortGuildCard (BANANA* client, SERVER* ship)
 {
 	ship->encryptbuf[0x00] = 0x07;
 	ship->encryptbuf[0x01] = 0x03;
@@ -13271,7 +13271,7 @@ void CommandD8 (BANANA* client)
 	encryptcopy (client, &PacketData[0], D8Offset);
 }
 
-void Command81 (BANANA* client, ORANGE* ship)
+void Command81 (BANANA* client, SERVER* ship)
 {
 	unsigned short* n;
 
@@ -13293,7 +13293,7 @@ void Command81 (BANANA* client, ORANGE* ship)
 }
 
 
-void CreateTeam (unsigned short* teamname, unsigned guildcard, ORANGE* ship)
+void CreateTeam (unsigned short* teamname, unsigned guildcard, SERVER* ship)
 {
 	unsigned short *g;
 	unsigned n;
@@ -13319,7 +13319,7 @@ void CreateTeam (unsigned short* teamname, unsigned guildcard, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x1E );
 }
 
-void UpdateTeamFlag (unsigned char* flag, unsigned teamid, ORANGE* ship)
+void UpdateTeamFlag (unsigned char* flag, unsigned teamid, SERVER* ship)
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x01;
@@ -13328,7 +13328,7 @@ void UpdateTeamFlag (unsigned char* flag, unsigned teamid, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x806 );
 }
 
-void DissolveTeam (unsigned teamid, ORANGE* ship)
+void DissolveTeam (unsigned teamid, SERVER* ship)
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x02;
@@ -13336,7 +13336,7 @@ void DissolveTeam (unsigned teamid, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x06 );
 }
 
-void RemoveTeamMember ( unsigned teamid, unsigned guildcard, ORANGE* ship )
+void RemoveTeamMember ( unsigned teamid, unsigned guildcard, SERVER* ship )
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x03;
@@ -13345,7 +13345,7 @@ void RemoveTeamMember ( unsigned teamid, unsigned guildcard, ORANGE* ship )
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x0A );
 }
 
-void TeamChat ( unsigned short* text, unsigned short chatsize, unsigned teamid, ORANGE* ship )
+void TeamChat ( unsigned short* text, unsigned short chatsize, unsigned teamid, SERVER* ship )
 {
 	unsigned size;
 
@@ -13360,7 +13360,7 @@ void TeamChat ( unsigned short* text, unsigned short chatsize, unsigned teamid, 
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], size );
 }
 
-void RequestTeamList ( unsigned teamid, unsigned guildcard, ORANGE* ship )
+void RequestTeamList ( unsigned teamid, unsigned guildcard, SERVER* ship )
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x05;
@@ -13369,7 +13369,7 @@ void RequestTeamList ( unsigned teamid, unsigned guildcard, ORANGE* ship )
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x0A );
 }
 
-void PromoteTeamMember ( unsigned teamid, unsigned guildcard, unsigned char newlevel, ORANGE* ship )
+void PromoteTeamMember ( unsigned teamid, unsigned guildcard, unsigned char newlevel, SERVER* ship )
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x06;
@@ -13379,7 +13379,7 @@ void PromoteTeamMember ( unsigned teamid, unsigned guildcard, unsigned char newl
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x0B );
 }
 
-void AddTeamMember ( unsigned teamid, unsigned guildcard, ORANGE* ship )
+void AddTeamMember ( unsigned teamid, unsigned guildcard, SERVER* ship )
 {
 	ship->encryptbuf[0x00] = 0x09;
 	ship->encryptbuf[0x01] = 0x07;
@@ -13389,7 +13389,7 @@ void AddTeamMember ( unsigned teamid, unsigned guildcard, ORANGE* ship )
 }
 
 // Team stuff
-void CommandEA (BANANA* client, ORANGE* ship)
+void CommandEA (BANANA* client, SERVER* ship)
 {
 	unsigned connectNum;
 
@@ -16860,7 +16860,7 @@ void rc4(unsigned char *buffer, unsigned len, struct rc4_key *key)
     key->x = x; key->y = y;
 }
 
-void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_size )
+void compressShipPacket ( SERVER* ship, unsigned char* src, unsigned long src_size )
 {
 	unsigned char* dest;
 	unsigned long result;
@@ -16890,7 +16890,7 @@ void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_si
 	}
 }
 
-void decompressShipPacket ( ORANGE* ship, unsigned char* dest, unsigned char* src )
+void decompressShipPacket ( SERVER* ship, unsigned char* dest, unsigned char* src )
 {
 	unsigned src_size, dest_size;
 	unsigned char *srccpy;
