@@ -7,6 +7,7 @@ Mostly the same, but with some fixes here and there.
 Important differences:
 - runs on Linux via Wine if compiled on Windows or Mingw,
 - can be built with just gcc
+- DAT version not supported (MySQL only)
 
 Installation
 ------------
