@@ -771,7 +771,7 @@ void load_config_file()
 	load_mask_file();
 }
 
-ORANGE logon_struct;
+ORANGE logon;
 BANANA * connections[SHIP_COMPILED_MAX_CONNECTIONS];
 BANANA * workConnect;
 unsigned logon_tick = 0;
@@ -957,31 +957,31 @@ void initialize_logon()
 	logon_ready = 0;
 	logon_tick = 0;
 	
-	if ( logon_struct.sockfd >= 0 )  // I think htis says, if socket is bound already, unbind
-		closesocket ( logon_struct.sockfd );
-	memset (&logon_struct, 0, sizeof (logon_struct));  // blank the whole struct instance for some reason
-	logon_struct.sockfd = -1;
+	if ( logon.sockfd >= 0 )  // I think htis says, if socket is bound already, unbind
+		closesocket ( logon.sockfd );
+	memset (&logon, 0, sizeof (logon));  // blank the whole struct instance for some reason
+	logon.sockfd = -1;
 	for (ch=0;ch<128;ch++)
-		logon_struct.key_change[ch] = -1;      // and then set all of key_change to -1....
+		logon.key_change[ch] = -1;      // and then set all of key_change to -1....
 	
 	// Here's the important part:
 	// Into a inaddr struct, is a (cast) unsigned long int representation
 	// of the logon server's ip address.
 	// This is the actual logon initialization.
-	logon_struct.sock.sin_addr.s_addr = *(unsigned *) &loginIP[0];
-	logon_struct.sock.sin_port = htons(LOGON_PORT);
-	logon_struct.sock.sin_family = AF_INET;
+	logon.sock.sin_addr.s_addr = *(unsigned *) &loginIP[0];
+	logon.sock.sin_port = htons(LOGON_PORT);
+	logon.sock.sin_family = AF_INET;
 }
 
 void reconnect_logon()
 {
 	// Just in case this is called because of an error in communication with the logon server
 
-	logon_struct.sockfd = tcp_sock_connect ( logon_struct.sock );
-	if (logon_struct.sockfd >= 0)
+	logon.sockfd = tcp_sock_connect ( logon.sock );
+	if (logon.sockfd >= 0)
 	{
 		printf ("Connection successful!\n");
-		logon_struct.last_ping = (unsigned) time(NULL);
+		logon.last_ping = (unsigned) time(NULL);
 	}
 	else
 	{
@@ -1028,7 +1028,7 @@ void initialize_connection (BANANA* connect)
 		if (connect->gotchardata == 1)
 		{
 			connect->character.playTime += (unsigned) servertime - connect->connected;
-			ShipSend04 (0x02, connect, &logon_struct);
+			ShipSend04 (0x02, connect, &logon);
 		}
 	}
 
@@ -1047,7 +1047,7 @@ void initialize_connection (BANANA* connect)
 	if (logon_ready)
 	{
 		printf ("Player Count: %u\n", serverNumConnections);
-		ShipSend0E (&logon_struct);
+		ShipSend0E (&logon);
 	}
 
 	memset (connect, 0, sizeof (BANANA) );
@@ -1241,7 +1241,7 @@ void Send1D (BANANA* client)
 	{
 		// Backup character data every 5 minutes.
 		client->savetime = (unsigned) servertime;
-		ShipSend04 (0x02, client, &logon_struct);
+		ShipSend04 (0x02, client, &logon);
 	}
 
 	num_minutes = ((unsigned) servertime - client->response) / 60L;
@@ -3243,14 +3243,14 @@ void BroadcastToAll (unsigned short *mes, BANANA* client)
 	else
 	{
 		// Global announcement
-		if (logon_struct.sockfd >= 0)
+		if (logon.sockfd >= 0)
 		{
 			// Send the announcement to the logon server.
-			logon_struct.encryptbuf[0x00] = 0x12;
-			logon_struct.encryptbuf[0x01] = 0x00;
-			*(unsigned *) &logon_struct.encryptbuf[0x02] = client->guildcard;
-			memcpy (&logon_struct.encryptbuf[0x06], &PacketData[sizeof(PacketEE)], xEE_Len - sizeof (PacketEE));
-			compressShipPacket (&logon_struct, &logon_struct.encryptbuf[0x00], 6 + xEE_Len - sizeof (PacketEE));
+			logon.encryptbuf[0x00] = 0x12;
+			logon.encryptbuf[0x01] = 0x00;
+			*(unsigned *) &logon.encryptbuf[0x02] = client->guildcard;
+			memcpy (&logon.encryptbuf[0x06], &PacketData[sizeof(PacketEE)], xEE_Len - sizeof (PacketEE));
+			compressShipPacket (&logon, &logon.encryptbuf[0x00], 6 + xEE_Len - sizeof (PacketEE));
 		}
 	}
 	client->announce = 0;
@@ -5528,7 +5528,7 @@ void LogonProcessPacket (ORANGE* ship)
 						client->lastTick = (unsigned) servertime;
 						if (client->block == 0)
 						{
-							if (logon_struct.sockfd >= 0)
+							if (logon.sockfd >= 0)
 								Send07(client);
 							else
 							{
@@ -5541,7 +5541,7 @@ void LogonProcessPacket (ORANGE* ship)
 							blocks[client->block - 1]->count++;
 							// Request E7 information from server...
 							Send83(client); // Lobby data
-							ShipSend04 (0x00, client, &logon_struct);
+							ShipSend04 (0x00, client, &logon);
 						}
 					}
 					break;
@@ -12983,7 +12983,7 @@ void Command10(unsigned blockServer, BANANA* client)
 						if (client->gotchardata)
 						{
 							client->character.playTime += (unsigned) servertime - client->connected; 
-							ShipSend04 (0x02, client, &logon_struct);
+							ShipSend04 (0x02, client, &logon);
 							client->gotchardata = 0;
 							client->released = 1;
 							*(unsigned *) &client->releaseIP[0] = *(unsigned *) &serverIP[0];
@@ -13006,7 +13006,7 @@ void Command10(unsigned blockServer, BANANA* client)
 			{
 				// Ship select
 				if ( selected == 0x00 )
-					ShipSend0D (0x00, client, &logon_struct);
+					ShipSend0D (0x00, client, &logon);
 				else
 					// Ships
 					for (ch=0;ch<totalShips;ch++)
@@ -13016,7 +13016,7 @@ void Command10(unsigned blockServer, BANANA* client)
 							if (client->gotchardata)
 							{
 								client->character.playTime += (unsigned) servertime - client->connected;
-								ShipSend04 (0x02, client, &logon_struct);
+								ShipSend04 (0x02, client, &logon);
 								client->gotchardata = 0;
 								client->released = 1;
 								*(unsigned *) &client->releaseIP[0] = *(unsigned*) &shipdata[ch].ipaddr[0];
@@ -13168,7 +13168,7 @@ void CommandE8 (BANANA* client)
 					if (PreppedGuildCard(lClient->guildcard,client->guildcard))
 					{
 						AddGuildCard (client->guildcard, gcn, &client->decryptbuf[0x0C], &client->decryptbuf[0x5C],
-							client->decryptbuf[0x10E], client->decryptbuf[0x10F], &logon_struct );
+							client->decryptbuf[0x10E], client->decryptbuf[0x10F], &logon );
 					}
 					break;
 				}
@@ -13178,7 +13178,7 @@ void CommandE8 (BANANA* client)
 	case 0x05:
 		// Deleting a guild card
 		gcn = *(unsigned*) &client->decryptbuf[0x08];
-		DeleteGuildCard (client->guildcard, gcn, &logon_struct);
+		DeleteGuildCard (client->guildcard, gcn, &logon);
 		break;
 	case 0x06:
 		// Setting guild card text
@@ -13220,12 +13220,12 @@ void CommandE8 (BANANA* client)
 		// E8 09 writing a comment on a user...  not sure were comment goes in the DC packet... 
 		// User @ 0x08 comment @ 0x0C
 		gcn = *(unsigned*) &client->decryptbuf[0x08];
-		ModifyGuildCardComment (client->guildcard, gcn, (unsigned short*) &client->decryptbuf[0x0E], &logon_struct);
+		ModifyGuildCardComment (client->guildcard, gcn, (unsigned short*) &client->decryptbuf[0x0E], &logon);
 		break;
 	case 0x0A:
 		// Sort guild card
 		// (Moves from one position to another)
-		SortGuildCard (client, &logon_struct);
+		SortGuildCard (client, &logon);
 		break;
 	}
 }
@@ -13715,7 +13715,7 @@ void BlockProcessPacket (BANANA* client)
 			if ( ((unsigned) servertime - client->command_cooldown[0x40]) >= 1 )
 			{
 				client->command_cooldown[0x40] = (unsigned) servertime;
-				Command40 (client, &logon_struct);
+				Command40 (client, &logon);
 			}
 			break;
 		case 0x13:
@@ -13869,7 +13869,7 @@ void BlockProcessPacket (BANANA* client)
 				if ( ((unsigned) servertime - client->command_cooldown[0x81]) >= 1 )
 				{
 					client->command_cooldown[0x81] = (unsigned) servertime;
-					Command81 (client, &logon_struct);
+					Command81 (client, &logon);
 				}
 			}
 			break;
@@ -13938,7 +13938,7 @@ void BlockProcessPacket (BANANA* client)
 		case 0xA0:
 			// Ship list
 			if (client->lobbyNum < 0x10)
-				ShipSend0D (0x00, client, &logon_struct);
+				ShipSend0D (0x00, client, &logon);
 			break;
 		case 0xA1:
 			// Block list
@@ -14143,7 +14143,7 @@ void BlockProcessPacket (BANANA* client)
 			break;
 		case 0xEA:
 			// Team shit
-			CommandEA (client, &logon_struct);
+			CommandEA (client, &logon);
 			break;
 		case 0xED:
 			// Set options
@@ -14212,7 +14212,7 @@ void BlockProcessPacket (BANANA* client)
 				else
 					if (!client->sendCheck[RECEIVE_PACKET_93])
 					{
-						ShipSend0B ( client, &logon_struct );
+						ShipSend0B ( client, &logon );
 						client->sendCheck[RECEIVE_PACKET_93] = 0x01;
 					}
 			}
@@ -14290,7 +14290,7 @@ void ShipProcessPacket (BANANA* client)
 			else
 				if (!client->sendCheck[RECEIVE_PACKET_93])
 				{
-					ShipSend0B ( client, &logon_struct );
+					ShipSend0B ( client, &logon );
 					client->sendCheck[RECEIVE_PACKET_93] = 0x01;
 				}
 		}
@@ -15897,9 +15897,9 @@ int main()
 		}
 
 		// Read from logon server (if connected)	
-		if (logon_struct.sockfd >= 0)
+		if (logon.sockfd >= 0)
 		{
-			if ((unsigned) servertime - logon_struct.last_ping > 60)
+			if ((unsigned) servertime - logon.last_ping > 60)
 			{
 				printf ("Logon server ping timeout.  Attempting reconnection in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
 				initialize_logon ();
@@ -15908,30 +15908,30 @@ int main()
 			{
 				// If there is packet data
 				// (not sure what function loads data from the client into the logon struct)
-				if (logon_struct.packetdata)
+				if (logon.packetdata)
 				{
 					// I think this checks if there are any unread packets
 					// No, i think it loads the packet needed to be read
 					// NO - its loading the size of the packet
-					logon_this_packet = *(unsigned *) &logon_struct.packet[logon_struct.packetread];
+					logon_this_packet = *(unsigned *) &logon.packet[logon.packetread];
 					// Here is where it actually loads the packet (copies into a buffer)
-					memcpy (&logon_struct.decryptbuf[0], &logon_struct.packet[logon_struct.packetread], logon_this_packet);
+					memcpy (&logon.decryptbuf[0], &logon.packet[logon.packetread], logon_this_packet);
 					
-					LogonProcessPacket ( &logon_struct );
+					LogonProcessPacket ( &logon );
 					
-					logon_struct.packetread += logon_this_packet;
+					logon.packetread += logon_this_packet;
 					
-					if (logon_struct.packetread == logon_struct.packetdata)
-						logon_struct.packetread = logon_struct.packetdata = 0;
+					if (logon.packetread == logon.packetdata)
+						logon.packetread = logon.packetdata = 0;
 				}
 				
-				FD_SET (logon_struct.sockfd, &ReadFDs);
-				nfds = max (nfds, logon_struct.sockfd);
+				FD_SET (logon.sockfd, &ReadFDs);
+				nfds = max (nfds, logon.sockfd);
 				
-				if (logon_struct.snddata - logon_struct.sndwritten)
+				if (logon.snddata - logon.sndwritten)
 				{
-					FD_SET (logon_struct.sockfd, &WriteFDs);
-					nfds = max (nfds, logon_struct.sockfd);
+					FD_SET (logon.sockfd, &WriteFDs);
+					nfds = max (nfds, logon.sockfd);
 				}
 			}
 		}
@@ -15979,7 +15979,7 @@ int main()
 							*(unsigned *) &workConnect->ipaddr = *(unsigned *) &listen_in.sin_addr;
 							printf ("Accepted SHIP connection from %s:%u\n", workConnect->IP_Address, listen_in.sin_port );
 							printf ("Player Count: %u\n", serverNumConnections);
-							ShipSend0E (&logon_struct);
+							ShipSend0E (&logon);
 							start_encryption (workConnect);
 							/* Doin' ship process... */
 							workConnect->block = 0;
@@ -16010,7 +16010,7 @@ int main()
 								printf ("Accepted BLOCK connection from %s:%u\n", inet_ntoa (listen_in.sin_addr), listen_in.sin_port );
 								*(unsigned *) &workConnect->ipaddr = *(unsigned *) &listen_in.sin_addr;
 								printf ("Player Count: %u\n", serverNumConnections);
-								ShipSend0E (&logon_struct);
+								ShipSend0E (&logon);
 								start_encryption (workConnect);
 								/* Doin' block process... */
 								workConnect->block = ch+1;
@@ -16156,14 +16156,14 @@ int main()
 
 			// Process logon server connection
 
-			if ( logon_struct.sockfd >= 0 )
+			if ( logon.sockfd >= 0 )
 			{
-				if (FD_ISSET(logon_struct.sockfd, &WriteFDs))
+				if (FD_ISSET(logon.sockfd, &WriteFDs))
 				{
 					// Write shit.
 
-					bytes_sent = send (logon_struct.sockfd, &logon_struct.sndbuf[logon_struct.sndwritten],
-						logon_struct.snddata - logon_struct.sndwritten, 0);
+					bytes_sent = send (logon.sockfd, &logon.sndbuf[logon.sndwritten],
+						logon.snddata - logon.sndwritten, 0);
 
 					if (bytes_sent == SOCKET_ERROR)
 					{
@@ -16175,16 +16175,16 @@ int main()
 						printf ("Reconnect in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
 					}
 					else
-						logon_struct.sndwritten += bytes_sent;
+						logon.sndwritten += bytes_sent;
 
-					if (logon_struct.sndwritten == logon_struct.snddata)
-						logon_struct.sndwritten = logon_struct.snddata = 0;
+					if (logon.sndwritten == logon.snddata)
+						logon.sndwritten = logon.snddata = 0;
 				}
 
-				if (FD_ISSET(logon_struct.sockfd, &ReadFDs))
+				if (FD_ISSET(logon.sockfd, &ReadFDs))
 				{
 					// Read shit.
-					if ( ( pkt_len = recv (logon_struct.sockfd, &tmprcv[0], PACKET_BUFFER_SIZE - 1, 0) ) <= 0 )
+					if ( ( pkt_len = recv (logon.sockfd, &tmprcv[0], PACKET_BUFFER_SIZE - 1, 0) ) <= 0 )
 					{
 						wserror = WSAGetLastError();
 						printf ("Could not read data from logon server...\n");
@@ -16198,38 +16198,38 @@ int main()
 						// Work with it.
 						for (pkt_c=0;pkt_c<pkt_len;pkt_c++)
 						{
-							logon_struct.rcvbuf[logon_struct.rcvread++] = tmprcv[pkt_c];
+							logon.rcvbuf[logon.rcvread++] = tmprcv[pkt_c];
 
-							if (logon_struct.rcvread == 4)
+							if (logon.rcvread == 4)
 							{
 								/* Read out how much data we're expecting this packet. */
-								logon_struct.expect = *(unsigned *) &logon_struct.rcvbuf[0];
+								logon.expect = *(unsigned *) &logon.rcvbuf[0];
 
-								if ( logon_struct.expect > TCP_BUFFER_SIZE  )
+								if ( logon.expect > TCP_BUFFER_SIZE  )
 								{
 									printf ("Received too much data from the logon server.\nSevering connection and will reconnect in %u seconds...\n",  LOGIN_RECONNECT_SECONDS);
 									initialize_logon();
 								}
 							}
 
-							if ( ( logon_struct.rcvread == logon_struct.expect ) && ( logon_struct.expect != 0 ) )
+							if ( ( logon.rcvread == logon.expect ) && ( logon.expect != 0 ) )
 							{
-								decompressShipPacket ( &logon_struct, &logon_struct.decryptbuf[0], &logon_struct.rcvbuf[0] );
+								decompressShipPacket ( &logon, &logon.decryptbuf[0], &logon.rcvbuf[0] );
 
-								logon_struct.expect = *(unsigned *) &logon_struct.decryptbuf[0];
+								logon.expect = *(unsigned *) &logon.decryptbuf[0];
 
-								if (logon_struct.packetdata + logon_struct.expect < PACKET_BUFFER_SIZE)
+								if (logon.packetdata + logon.expect < PACKET_BUFFER_SIZE)
 								{
-									memcpy ( &logon_struct.packet[logon_struct.packetdata], &logon_struct.decryptbuf[0], logon_struct.expect );
-									logon_struct.packetdata += logon_struct.expect;
+									memcpy ( &logon.packet[logon.packetdata], &logon.decryptbuf[0], logon.expect );
+									logon.packetdata += logon.expect;
 								}
 								else
 									initialize_logon();
 
-								if ( logon_struct.sockfd < 0 )
+								if ( logon.sockfd < 0 )
 									break;
 
-								logon_struct.rcvread = 0;
+								logon.rcvread = 0;
 							}
 						}
 					}
