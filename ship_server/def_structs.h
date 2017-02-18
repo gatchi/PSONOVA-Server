@@ -296,7 +296,7 @@ typedef struct NO_ALIGN st_chardata {
 
 /* Connected Client Structure */
 
-typedef struct st_banana {
+typedef struct st_client {
 	int plySockfd;
 	int block;
 	unsigned char rcvbuf [TCP_BUFFER_SIZE];
@@ -365,7 +365,7 @@ typedef struct st_banana {
 	void* lobby;
 	int announce;
 	int debugged;
-} BANANA;
+} CLIENT;
 
 
 /* Quest Details Structure */
@@ -549,7 +549,7 @@ typedef struct st_lobby {
 	int in_use;
 	int redbox;
 	int slot_use[12];
-	BANANA* client[12];
+	CLIENT* client[12];
 	BATTLEPARAM* bptable;
 } LOBBY;
 
