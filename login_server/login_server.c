@@ -382,8 +382,8 @@ PSO_CRYPT* cipher_ptr;
 
 void encryptcopy (PLAYER* client, const unsigned char* src, unsigned size);
 void decryptcopy (unsigned char* dest, const unsigned char* src, unsigned size);
-void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_size );
-void decompressShipPacket ( ORANGE* ship, unsigned char* dest, unsigned char* src );
+void compressShipPacket ( SHIP* ship, unsigned char* src, unsigned long src_size );
+void decompressShipPacket ( SHIP* ship, unsigned char* dest, unsigned char* src );
 
 #ifdef NO_SQL
 
@@ -907,9 +907,9 @@ void load_config_file()
 }
 
 PLAYER * connections[LOGIN_COMPILED_MAX_CONNECTIONS];
-ORANGE * ships[SHIP_COMPILED_MAX_CONNECTIONS];
+SHIP * ships[SHIP_COMPILED_MAX_CONNECTIONS];
 PLAYER * workConnect;
-ORANGE * workShip;
+SHIP * workShip;
 
 unsigned char PacketA0Data[0x4000] = {0};
 unsigned short PacketA0Size = 0;
@@ -919,7 +919,7 @@ const char NoShips[9] = "No ships!";
 
 void construct0xA0()
 {
-	ORANGE* shipcheck;
+	SHIP* shipcheck;
 	unsigned totalShips = 0xFFFFFFF4;
 	unsigned short A0Offset;
 	char* shipName;
@@ -1007,7 +1007,7 @@ unsigned free_connection()
 unsigned free_shipconnection()
 {
 	unsigned fc;
-	ORANGE* wc;
+	SHIP* wc;
 
 	for (fc=0;fc<serverMaxShips;fc++)
 	{
@@ -1041,7 +1041,7 @@ void initialize_connection (PLAYER* connect)
 	connect->connected = 0xFFFFFFFF;
 }
 
-void initialize_ship (ORANGE* ship)
+void initialize_ship (SHIP* ship)
 {
 	unsigned ch, ch2;
 
@@ -1059,7 +1059,7 @@ void initialize_ship (ORANGE* ship)
 		serverNumShips = ch2;
 		closesocket (ship->shipSockfd);
 	}
-	memset (ship, 0, sizeof (ORANGE) );
+	memset (ship, 0, sizeof (SHIP) );
 	for (ch=0;ch<128;ch++)
 		ship->key_change[ch] = -1;
 	ship->shipSockfd = -1;
@@ -2097,7 +2097,7 @@ const unsigned char RC4publicKey[32] = {
 	6, 95, 151, 28, 140, 243, 130, 61, 107, 234, 243, 172, 77, 24, 229, 156
 };
 
-void ShipSend0F (unsigned char episode, unsigned char part, ORANGE* ship)
+void ShipSend0F (unsigned char episode, unsigned char part, SHIP* ship)
 {
 	ship->encryptbuf[0x00] = 0x0F;
 	ship->encryptbuf[0x01] = episode;
@@ -2117,7 +2117,7 @@ void ShipSend0F (unsigned char episode, unsigned char part, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0], 3 + (sizeof (rt_tables_ep1) >> 1) );
 }
 
-void ShipSend10 (ORANGE* ship)
+void ShipSend10 (SHIP* ship)
 {
 	ship->encryptbuf[0x00] = 0x10;
 	ship->encryptbuf[0x01] = 0x00;
@@ -2125,7 +2125,7 @@ void ShipSend10 (ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0], 34 );
 }
 
-void ShipSend11 (ORANGE* ship)
+void ShipSend11 (SHIP* ship)
 {
 	ship->encryptbuf[0x00] = 0x11;
 	ship->encryptbuf[0x01] = 0x00;
@@ -2135,7 +2135,7 @@ void ShipSend11 (ORANGE* ship)
 }
 
 
-void ShipSend00 (ORANGE* ship)
+void ShipSend00 (SHIP* ship)
 {
 	unsigned char ch, ch2;
 
@@ -2158,10 +2158,10 @@ void ShipSend00 (ORANGE* ship)
 
 /* Ship authentication result */
 
-void ShipSend02 (unsigned char result, ORANGE* ship)
+void ShipSend02 (unsigned char result, SHIP* ship)
 {
 	unsigned si,ch,shipNum;
-	ORANGE* tempShip;
+	SHIP* tempShip;
 
 	ship->encryptbuf [0x00] = 0x02;
 	ship->encryptbuf [0x01] = result;
@@ -2195,7 +2195,7 @@ void ShipSend02 (unsigned char result, ORANGE* ship)
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], si );
 }
 
-void ShipSend08 (unsigned gcn, ORANGE* ship)
+void ShipSend08 (unsigned gcn, SHIP* ship)
 {
 	// Tell the other ships this user logged on and to disconnect him/her if they're still active...
 	ship->encryptbuf[0x00] = 0x08;
@@ -2205,10 +2205,10 @@ void ShipSend08 (unsigned gcn, ORANGE* ship)
 }
 
 
-void ShipSend0D (unsigned char command, ORANGE* ship)
+void ShipSend0D (unsigned char command, SHIP* ship)
 {
 	unsigned shipNum;
-	ORANGE* tship;
+	SHIP* tship;
 
 	switch (command)
 	{
@@ -2369,7 +2369,7 @@ unsigned short gccomment[45] = {0x305C};
 unsigned char check_key[32];
 unsigned char check_key2[32];
 
-void ShipProcessPacket (ORANGE* ship)
+void ShipProcessPacket (SHIP* ship)
 {
 	unsigned cv, shipNum;
 	int pass;
@@ -2407,7 +2407,7 @@ void ShipProcessPacket (ORANGE* ship)
 		{
 			//unsigned ch, sameIP;
 			unsigned ch2, shipOK;
-			//ORANGE* tship;
+			//SHIP* tship;
 
 			shipOK = 1;
 
@@ -3374,7 +3374,7 @@ void ShipProcessPacket (ORANGE* ship)
 			{
 				unsigned clientGcn, friendGcn, ch, teamid;
 				int gc_exists = 0;
-				ORANGE* tship;
+				SHIP* tship;
 
 				friendGcn = *(unsigned*) &ship->decryptbuf[0x06];
 				clientGcn = *(unsigned*) &ship->decryptbuf[0x0A];
@@ -3465,7 +3465,7 @@ void ShipProcessPacket (ORANGE* ship)
 			cv--;
 			if (cv < serverMaxShips)
 			{
-				ORANGE* tship;
+				SHIP* tship;
 
 				tship = ships[cv];
 				if ((tship->shipSockfd >= 0) && (tship->authed == 1))
@@ -3477,7 +3477,7 @@ void ShipProcessPacket (ORANGE* ship)
 			{
 				unsigned clientGcn, friendGcn, ch, teamid;
 				int gc_exists = 0;
-				ORANGE* tship;
+				SHIP* tship;
 
 				friendGcn = *(unsigned*) &ship->decryptbuf[0x36];
 				clientGcn = *(unsigned*) &ship->decryptbuf[0x12];
@@ -3827,7 +3827,7 @@ void ShipProcessPacket (ORANGE* ship)
 		case 0x04:
 			// Team Chat
 			{
-				ORANGE* tship;
+				SHIP* tship;
 				unsigned size,ch;
 
 				size = *(unsigned*) &ship->decryptbuf[0x00];
@@ -4202,7 +4202,7 @@ void ShipProcessPacket (ORANGE* ship)
 	case 0x12:
 		// Global announcement
 		{
-			ORANGE* tship;
+			SHIP* tship;
 			unsigned size,ch;
 
 			size = *(unsigned *) &ship->decryptbuf[0x00];
@@ -4253,7 +4253,7 @@ void CharacterProcessPacket (PLAYER* client)
 	case 0x10:
 		if ((client->guildcard) && (client->slotnum != -1))
 		{
-			ORANGE* tship;
+			SHIP* tship;
 
 			selected = *(unsigned *) &client->decryptbuf[0x0C];
 			for (ch=0;ch<serverNumShips;ch++)
@@ -4711,7 +4711,7 @@ void LoginProcessPacket (PLAYER* client)
 #ifdef NO_SQL
 	long long truehwinfo;
 #endif
-	ORANGE* tship;
+	SHIP* tship;
 #ifndef NO_SQL
 	char security_sixtyfour_binary[18];
 #endif
@@ -5426,11 +5426,11 @@ main( int argc, char * argv[] )
 		initialize_connection (connections[ch]);
 	}
 	printf (" OK!\n");
-	printf ("Allocating %u bytes of memory for ships...", sizeof (ORANGE) * serverMaxShips );
+	printf ("Allocating %u bytes of memory for ships...", sizeof (SHIP) * serverMaxShips );
 	memset (&ships, 0, 4 * serverMaxShips);
 	for (ch=0;ch<serverMaxShips;ch++)
 	{
-		ships[ch] = malloc ( sizeof (ORANGE) );
+		ships[ch] = malloc ( sizeof (SHIP) );
 		if ( !ships[ch] )
 		{
 			printf ("Out of memory!\n");
@@ -6768,7 +6768,7 @@ void rc4(unsigned char *buffer, unsigned len, struct rc4_key *key)
     key->x = x; key->y = y;
 }
 
-void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_size )
+void compressShipPacket ( SHIP* ship, unsigned char* src, unsigned long src_size )
 {
 	unsigned char* dest;
 	unsigned long result;
@@ -6808,7 +6808,7 @@ void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_si
 	}
 }
 
-void decompressShipPacket ( ORANGE* ship, unsigned char* dest, unsigned char* src )
+void decompressShipPacket ( SHIP* ship, unsigned char* dest, unsigned char* src )
 {
 	unsigned src_size, dest_size;
 	unsigned char *srccpy;

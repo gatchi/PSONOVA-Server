@@ -229,7 +229,7 @@ struct rc4_key {
 
 /* Ship Structure */
 
-typedef struct st_orange {
+typedef struct st_ship {
 	int shipSockfd;
 	unsigned char name[13];
 	unsigned playerCount;
@@ -260,4 +260,4 @@ typedef struct st_orange {
 	unsigned connected;
 	unsigned last_ping;
 	int sent_ping;
-} ORANGE;
+} SHIP;
