@@ -18,7 +18,7 @@ account_add char_export convert_quest: $$@.o md5.o
 patch: patch_server.o ../patch_server/resource.h
 	$(CC) -o $@ $< $(WINSOCK)
 
-login: login_server.o md5.o
+login: login_server.o md5.o ../login_server/def_structs.h
 	$(CC) -o $@ $< $(WINSOCK) $(MYSQL) md5.o
 
 ship: mtwist.o ship_server.o $(SHIP_H)

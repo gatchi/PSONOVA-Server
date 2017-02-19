@@ -1,7 +1,5 @@
 TODO
 =====
-- remove redundant "logon" pointer in ship_server.c
-  ! something hecked up around line 15921
 
 - replace libraries with sources with DLLs or something (make DLLs?)
 
@@ -14,9 +12,8 @@ TODO
 
 - add sample inis and such to the bin category (or rename to "install" or something)
   
-- enable sending of simple mail/announcements from terminal
+o enable sending of simple mail/announcements from terminal
 
-- rename ORANGE and BANANA
 
 
 Bugs
