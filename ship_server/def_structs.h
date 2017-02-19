@@ -1,3 +1,4 @@
+//#define NO_ALIGN __declspec(align(1))   // This only works for visual studio i think
 #define NO_ALIGN __attribute__((packed))
 
 typedef struct NO_ALIGN st_ptdata
