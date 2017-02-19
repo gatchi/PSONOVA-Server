@@ -1,4 +1,4 @@
-//#define NO_ALIGN __declspec(align(1))   // This only works for vs i think
+//#define NO_ALIGN __declspec(align(1))   // This only works for visual studio i think
 #define NO_ALIGN __attribute__((packed))  // Use this for gcc
 
 /* Mag data structure */
@@ -180,7 +180,7 @@ typedef struct NO_ALIGN st_chardata {
 
 /* Player Structure */
 
-typedef struct st_banana {
+typedef struct st_player {
 	int plySockfd;
 	int login;
 	unsigned char peekbuf[8];
@@ -214,7 +214,7 @@ typedef struct st_banana {
 	int isgm;
 	int dress_flag;
 	unsigned connection_index;
-} BANANA;
+} PLAYER;
 
 typedef struct st_dressflag {
 	unsigned guildcard;

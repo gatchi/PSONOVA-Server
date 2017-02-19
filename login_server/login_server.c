@@ -380,7 +380,7 @@ void prepare_key(unsigned char *keydata, unsigned len, struct rc4_key *key);
 
 PSO_CRYPT* cipher_ptr;
 
-void encryptcopy (BANANA* client, const unsigned char* src, unsigned size);
+void encryptcopy (PLAYER* client, const unsigned char* src, unsigned size);
 void decryptcopy (unsigned char* dest, const unsigned char* src, unsigned size);
 void compressShipPacket ( ORANGE* ship, unsigned char* src, unsigned long src_size );
 void decompressShipPacket ( ORANGE* ship, unsigned char* dest, unsigned char* src );
@@ -906,9 +906,9 @@ void load_config_file()
 	}
 }
 
-BANANA * connections[LOGIN_COMPILED_MAX_CONNECTIONS];
+PLAYER * connections[LOGIN_COMPILED_MAX_CONNECTIONS];
 ORANGE * ships[SHIP_COMPILED_MAX_CONNECTIONS];
-BANANA * workConnect;
+PLAYER * workConnect;
 ORANGE * workShip;
 
 unsigned char PacketA0Data[0x4000] = {0};
@@ -993,7 +993,7 @@ void construct0xA0()
 unsigned free_connection()
 {
 	unsigned fc;
-	BANANA* wc;
+	PLAYER* wc;
 
 	for (fc=0;fc<serverMaxConnections;fc++)
 	{
@@ -1019,7 +1019,7 @@ unsigned free_shipconnection()
 }
 
 
-void initialize_connection (BANANA* connect)
+void initialize_connection (PLAYER* connect)
 {
 	unsigned ch, ch2;
 
@@ -1034,7 +1034,7 @@ void initialize_connection (BANANA* connect)
 		serverNumConnections = ch2;
 		closesocket (connect->plySockfd);
 	}
-	memset (connect, 0, sizeof (BANANA));
+	memset (connect, 0, sizeof (PLAYER));
 	connect->plySockfd = -1;
 	connect->login = -1;
 	connect->lastTick = 0xFFFFFFFF;
@@ -1068,10 +1068,10 @@ void initialize_ship (ORANGE* ship)
 	construct0xA0(); // Removes inactive ships
 }
 
-void start_encryption(BANANA* connect)
+void start_encryption(PLAYER* connect)
 {
 	unsigned c, c3, c4, connectNum;
-	BANANA *workConnect, *c5;
+	PLAYER *workConnect, *c5;
 
 	// Limit the number of connections from an IP address to MAX_SIMULTANEOUS_CONNECTIONS.
 
@@ -1130,7 +1130,7 @@ void start_encryption(BANANA* connect)
 	connect->connected = (unsigned) servertime;
 }
 
-void SendB1 (BANANA* client)
+void SendB1 (PLAYER* client)
 {
 	SYSTEMTIME rawtime;
 
@@ -1148,7 +1148,7 @@ void SendB1 (BANANA* client)
 		client->todc = 1;
 }
 
-void Send1A (const char *mes, BANANA* client)
+void Send1A (const char *mes, PLAYER* client)
 {
 	unsigned short x1A_Len;
 
@@ -1172,7 +1172,7 @@ void Send1A (const char *mes, BANANA* client)
 	client->todc = 1;
 }
 
-void SendA0 (BANANA* client)
+void SendA0 (PLAYER* client)
 {
 	if ((client->guildcard) && (client->slotnum != -1))
 	{
@@ -1184,7 +1184,7 @@ void SendA0 (BANANA* client)
 }
 
 
-void SendEE (const char *mes, BANANA* client)
+void SendEE (const char *mes, PLAYER* client)
 {
 	unsigned short xEE_Len;
 
@@ -1210,7 +1210,7 @@ void SendEE (const char *mes, BANANA* client)
 	}
 }
 
-void Send19 (unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4, unsigned short ipp, BANANA* client)
+void Send19 (unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned char ip4, unsigned short ipp, PLAYER* client)
 {
 	memcpy ( &client->encryptbuf[0], &Packet19, sizeof (Packet19));
 	client->encryptbuf[0x08] = ip1;
@@ -1224,7 +1224,7 @@ void Send19 (unsigned char ip1, unsigned char ip2, unsigned char ip3, unsigned c
 
 unsigned char key_data_send[840+10] = {0};
 
-void SendE2 (BANANA* client)
+void SendE2 (PLAYER* client)
 {
 	int key_exists = 0;
 
@@ -1319,7 +1319,7 @@ unsigned char DefaultTeamFlagSlashes[4098];
 unsigned char DefaultTeamFlag[2048];
 unsigned char FlagSlashes[4098];
 
-void AckCharacter_Creation(unsigned char slotnum, BANANA* client)
+void AckCharacter_Creation(unsigned char slotnum, PLAYER* client)
 {
 	unsigned short *n;
 #ifndef NO_SQL
@@ -1747,7 +1747,7 @@ void AckCharacter_Creation(unsigned char slotnum, BANANA* client)
 	else
 		client->todc = 1;
 }
-void SendE4_E5(unsigned char slotnum, unsigned char selecting, BANANA* client)
+void SendE4_E5(unsigned char slotnum, unsigned char selecting, PLAYER* client)
 {
 	int char_exists = 0;
 	MINICHAR* mc;
@@ -1911,7 +1911,7 @@ void SendE4_E5(unsigned char slotnum, unsigned char selecting, BANANA* client)
 		client->todc = 1;
 }
 
-void SendE8 (BANANA* client)
+void SendE8 (PLAYER* client)
 {
 	if ((client->guildcard) && (!client->sendCheck[SEND_PACKET_E8]))
 	{
@@ -1923,7 +1923,7 @@ void SendE8 (BANANA* client)
 		client->todc = 1;
 }
 
-void SendEB (unsigned char subCommand, unsigned char EBOffset, BANANA* client)
+void SendEB (unsigned char subCommand, unsigned char EBOffset, PLAYER* client)
 {
 	unsigned CalcOffset;
 
@@ -1955,7 +1955,7 @@ void SendEB (unsigned char subCommand, unsigned char EBOffset, BANANA* client)
 		client->todc = 1;
 }
 
-void SendDC (int sendChecksum, unsigned char PacketNum, BANANA* client)
+void SendDC (int sendChecksum, unsigned char PacketNum, PLAYER* client)
 {
 	unsigned gc_ofs = 0, 
 		total_guilds = 0;
@@ -4226,7 +4226,7 @@ void ShipProcessPacket (ORANGE* ship)
 }
 
 
-void CharacterProcessPacket (BANANA* client)
+void CharacterProcessPacket (PLAYER* client)
 {
 	char username[17];
 	char password[34];
@@ -4697,7 +4697,7 @@ void CharacterProcessPacket (BANANA* client)
 	}
 }
 
-void LoginProcessPacket (BANANA* client)
+void LoginProcessPacket (PLAYER* client)
 {
 	char username[17];
 	char password[34];
@@ -5412,10 +5412,10 @@ main( int argc, char * argv[] )
 	printf ("Character Port: %u\n", serverPort+1 );
 	printf ("Maximum Connections: %u\n", serverMaxConnections );
 	printf ("Maximum Ships: %u\n\n", serverMaxShips );
-	printf ("Allocating %u bytes of memory for connections...", sizeof (BANANA) * serverMaxConnections );
+	printf ("Allocating %u bytes of memory for connections...", sizeof (PLAYER) * serverMaxConnections );
 	for (ch=0;ch<serverMaxConnections;ch++)
 	{
-		connections[ch] = malloc ( sizeof (BANANA) );
+		connections[ch] = malloc ( sizeof (PLAYER) );
 		if ( !connections[ch] )
 		{
 			printf ("Out of memory!\n");
@@ -6344,7 +6344,7 @@ void pso_crypt_encrypt_bb(PSO_CRYPT *pcry, unsigned char *data, unsigned
 	}
 }
 
-void encryptcopy (BANANA* client, const unsigned char* src, unsigned size)
+void encryptcopy (PLAYER* client, const unsigned char* src, unsigned size)
 {
 	unsigned char* dest;
 
