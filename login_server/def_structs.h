@@ -1,3 +1,5 @@
+/* Login server structs */
+
 //#define NO_ALIGN __declspec(align(1))   // This only works for visual studio i think
 #define NO_ALIGN __attribute__((packed))  // Use this for gcc
 
