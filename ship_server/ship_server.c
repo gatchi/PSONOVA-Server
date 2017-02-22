@@ -13354,9 +13354,9 @@ void TeamChat ( unsigned short* text, unsigned short chatsize, unsigned teamid, 
 	*(unsigned*) &ship->encryptbuf[0x02] = teamid;
 	while (chatsize % 8)
 		ship->encryptbuf[6 + (chatsize++)] = 0x00;
-	*text = chatsize;;
+	*text = chatsize;
 	memcpy (&ship->encryptbuf[0x06], text, chatsize);
-	size = chatsize + 6;;
+	size = chatsize + 6;
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], size );
 }
 
@@ -15949,7 +15949,6 @@ int main()
 		// Listen for block connections
 		for (ch=0;ch<serverBlocks;ch++)
 		{
-			// These FD_SET functions have something to do with filedescriptors and unix
 			FD_SET (block_sockfd[ch], &ReadFDs);
 			nfds = max (nfds, block_sockfd[ch]);
 		}
@@ -16041,11 +16040,10 @@ int main()
 
 						if (bytes_sent == SOCKET_ERROR)
 						{
-							/*
 							wserror = WSAGetLastError();
 							printf ("Could not send data to client...\n");
 							printf ("Socket Error %u.\n", wserror );
-							*/
+							
 							initialize_connection (workConnect);							
 						}
 						else
