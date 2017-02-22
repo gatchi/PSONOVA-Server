@@ -423,7 +423,8 @@ main( int argc, char * argv[] )
 #endif
 	reg_seconds = (unsigned) regtime / 3600L;
 	ch = strlen (&password[0]);
-	_itoa (reg_seconds, &config_data[0], 10 );
+	//_itoa (reg_seconds, &config_data[0], 10 );  // outdated and windows only i think, instead use:
+	sprintf (&config_data[0], "%d", reg_seconds);
 	//Throw some salt in the game ;)
 	sprintf (&password[ch], "_%s_salt", &config_data[0] );
 	//printf ("New password = %s\n", password );
