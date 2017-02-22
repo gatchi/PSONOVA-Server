@@ -1,5 +1,7 @@
 TODO
 =====
+  
+- enable sending of simple mail/announcements from terminal
 
 - replace libraries with sources with DLLs or something (make DLLs?)
 
@@ -11,8 +13,6 @@ TODO
 - make localgms.ini more user friendly
 
 - add sample inis and such to the bin category (or rename to "install" or something)
-  
-o enable sending of simple mail/announcements from terminal
 
 
 
