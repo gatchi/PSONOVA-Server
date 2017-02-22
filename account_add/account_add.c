@@ -10,7 +10,10 @@
 
 //#define NO_SQL
 
+#ifdef _WIN32
 #include	<windows.h>
+#endif
+
 #include	<stdio.h>
 #include	<string.h>
 #include	<time.h>
@@ -226,6 +229,10 @@ main( int argc, char * argv[] )
 		return 1;
 	}
 	
+#ifdef NO_SQL
+	num_accounts = 0;
+	LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
+#endif
 #ifndef NO_SQL
 	if ( (myData = mysql_init((MYSQL*) 0)) && 
 		mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port,
@@ -244,10 +251,6 @@ main( int argc, char * argv[] )
 		mysql_close( myData ) ;
 		return 1 ;
 	}
-#endif
-#ifdef NO_SQL
-		num_accounts = 0;
-		LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
 #endif
 
 	printf ("Tethealla Server Account Addition\n");
@@ -271,7 +274,8 @@ main( int argc, char * argv[] )
 			}
 			if (!pw_ok)
 				printf ("There's already an account by that name on the server.\n");
-#else
+#endif
+#ifndef NO_SQL
 			sprintf (&myQuery[0], "SELECT * from account_data WHERE username='%s'", inputstr );
 			// Check to see if that account already exists.
 			//printf ("Executing MySQL query: %s\n", myQuery );
@@ -314,6 +318,7 @@ main( int argc, char * argv[] )
 		if ( ( strlen (inputstr ) < 17 ) || ( strlen (inputstr) < 8 ) )
 		{
 			memcpy (&password[0], &inputstr[0], 17 );
+			// Theres no hiding of characters so theres no reason to have to type twice
 			/*printf ("Verify password: ");
 			scanf ("%s", inputstr );
 			memcpy (&password_check[0], &inputstr[0], 17 );
@@ -378,6 +383,7 @@ main( int argc, char * argv[] )
 #endif
 		if (!num_rows) // If not in the database already
 		{
+			// Theres no hiding of characters so theres no reason to have to type twice
 			/* printf ("Verify e-mail address: ");
 			scanf ("%s", inputstr );
 			memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
@@ -441,7 +447,8 @@ main( int argc, char * argv[] )
 		account_data[num_accounts]->isgm = 1;
 		account_data[num_accounts]->teamid = -1;
 		UpdateDataFile ( "account.dat", 0, account_data[num_accounts], sizeof ( L_ACCOUNT_DATA ), 1 );
-#else
+#endif
+#ifndef NO_SQL
 		sprintf (&myQuery[0], "INSERT into account_data (username,password,email,regtime,guildcard,isgm,isactive) VALUES ('%s','%s','%s','%u','%u','1','1')", username, md5password, email, reg_seconds, guildcard_number );
 #endif
 	}
@@ -465,7 +472,8 @@ main( int argc, char * argv[] )
 		account_data[num_accounts]->isgm = 0;
 		account_data[num_accounts]->teamid = -1;
 		UpdateDataFile ( "account.dat", num_accounts, account_data[num_accounts], sizeof ( L_ACCOUNT_DATA ), 1 );
-#else
+#endif
+#ifndef NO_SQL
 		sprintf (&myQuery[0], "INSERT into account_data (username,password,email,regtime,isactive) VALUES ('%s','%s','%s','%u','1')", username, md5password, email, reg_seconds );
 #endif
 	}
