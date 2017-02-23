@@ -1,16 +1,23 @@
 /****************************************************************/
-/*	Author:	Sodaboy												*/
-/*	Date:	07/22/2008											*/
-/*	accountadd.c :  Adds an account to the Tethealla PSO		*/
-/*			server...											*/
+/*	Author:	Sodaboy                                             */
+/*	Date:	07/22/2008                                          */
+/*	accountadd.c :  Adds an account to the Tethealla PSO        */
+/*			server...                                           */
 /*																*/
-/*	History:													*/
-/*		07/22/2008  TC  First version...						*/
+/*	History:                                                    */
+/*		07/22/2008  TC  First version...                        */
 /****************************************************************/
 
 //#define NO_SQL
 
+#ifdef _WIN32
 #include	<windows.h>
+#endif
+
+#ifdef __gnu_linux__
+#include	<stdlib.h>
+#endif
+
 #include	<stdio.h>
 #include	<string.h>
 #include	<time.h>
@@ -167,7 +174,7 @@ main( int argc, char * argv[] )
 	char mySQL_Database[255] = {0};
 	unsigned int mySQL_Port;
 	int config_index = 0;
-	char config_data[255];
+	char config_data[255] = {0};
 
 	unsigned char MDBuffer[17] = {0};
 
@@ -178,60 +185,73 @@ main( int argc, char * argv[] )
 		printf ("The configuration file tethealla.ini appears to be missing.\n");
 		return 1;
 	}
-	else
-		while (fgets (&config_data[0], 255, fp) != NULL)
-		{
-			if (config_data[0] != 0x23)
-			{
-				if (config_index < 0x04)
-				{
-					ch = strlen (&config_data[0]);
-					if (config_data[ch-1] == 0x0A)
-						config_data[ch--]  = 0x00;
-					config_data[ch] = 0;
-				}
-				switch (config_index)
-				{
-				case 0x00:
-					// MySQL Host
-					memcpy (&mySQL_Host[0], &config_data[0], ch+1);
-					break;
-				case 0x01:
-					// MySQL Username
-					memcpy (&mySQL_Username[0], &config_data[0], ch+1);
-					break;
-				case 0x02:
-					// MySQL Password
-					memcpy (&mySQL_Password[0], &config_data[0], ch+1);
-					break;
-				case 0x03:
-					// MySQL Database
-					memcpy (&mySQL_Database[0], &config_data[0], ch+1);
-					break;
-				case 0x04:
-					// MySQL Port
-					mySQL_Port = atoi (&config_data[0]);
-					break;
-				default:
-					break;
-				}
-				config_index++;
-			}
-		}
-		fclose (fp);
-
-	if (config_index < 5)
-	{
-		printf ("tethealla.ini seems to be corrupted.\n");
-		return 1;
-	}
 	
-#ifndef NO_SQL
-	if ( (myData = mysql_init((MYSQL*) 0)) && 
-		mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port,
-		NULL, 0 ) )
+	while ((fgets (config_data, 255, fp) != NULL) && (config_index < 5))
 	{
-		if ( mysql_select_db( myData, &mySQL_Database[0] ) < 0 ) {
+		if (config_data[0] != 0x23)
+		{
+			if (config_index < 0x04)
+			{
+				// Remove newlines and any carriage returns
+				char len = strlen (&config_data[0]);
+				if (config_data[len-1] == '\n')
+				{
+					config_data[len-1]  = '\0';
+					if (config_data[len-2] == '\r');
+						config_data[len-2] = '\0';
+				}
+			}
+			switch (config_index)
+			{
+			case 0x00:
+				// MySQL Host
+				strcpy (&mySQL_Host[0], &config_data[0]);
+				break;
+			case 0x01:
+				// MySQL Username
+				strcpy (&mySQL_Username[0], &config_data[0]);
+				break;
+			case 0x02:
+				// MySQL Password
+				strcpy (&mySQL_Password[0], &config_data[0]);
+				break;
+			case 0x03:
+				// MySQL Database
+				strcpy (&mySQL_Database[0], &config_data[0]);
+				break;
+			case 0x04:
+				// MySQL Port
+				mySQL_Port = atoi (&config_data[0]);
+				break;
+			default:
+				break;
+			}
+			config_index++;
+		}
+		
+		// Clear config_data after each fgets
+		memset (config_data, 0, 255 * sizeof (char));
+	}
+	fclose (fp);
+
+	// if (config_index = 5)
+	// {
+		// printf ("tethealla.ini seems to be corrupted.\n");
+		// return 1;
+	// }
+	
+#ifdef NO_SQL
+	num_accounts = 0;
+	LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
+#endif
+#ifndef NO_SQL
+	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
+	{
+		if ( mysql_select_db( myData, mySQL_Database ) < 0 )
+		{
+			// In the linux version this doesnt get triggered when the wrong database is selected!!!
+			// It just says cant query the server!!!
+			// Why is this getting skipped!!!!!!!!!!!!!
 			printf( "Can't select the %s database !\n", mySQL_Database ) ;
 			mysql_close( myData ) ;
 			return 2 ;
@@ -245,11 +265,6 @@ main( int argc, char * argv[] )
 		return 1 ;
 	}
 #endif
-#ifdef NO_SQL
-		num_accounts = 0;
-		LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
-#endif
-
 	printf ("Tethealla Server Account Addition\n");
 	printf ("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
 	pw_ok = 0;
@@ -271,7 +286,8 @@ main( int argc, char * argv[] )
 			}
 			if (!pw_ok)
 				printf ("There's already an account by that name on the server.\n");
-#else
+#endif
+#ifndef NO_SQL
 			sprintf (&myQuery[0], "SELECT * from account_data WHERE username='%s'", inputstr );
 			// Check to see if that account already exists.
 			//printf ("Executing MySQL query: %s\n", myQuery );
@@ -314,19 +330,20 @@ main( int argc, char * argv[] )
 		if ( ( strlen (inputstr ) < 17 ) || ( strlen (inputstr) < 8 ) )
 		{
 			memcpy (&password[0], &inputstr[0], 17 );
-			/*printf ("Verify password: ");
-			scanf ("%s", inputstr );
-			memcpy (&password_check[0], &inputstr[0], 17 );
-			pw_same = 1;
-			for (ch=0;ch<16;ch++)
-			{
-				if (password[ch] != password_check[ch])
-					pw_same = 0;
-			}
-			if (pw_same)
-				pw_ok = 1;
-			else
-				printf ("The input passwords did not match.\n");*/
+			// Theres no hiding of characters so theres no reason to have to type twice
+			// printf ("Verify password: ");
+			// scanf ("%s", inputstr );
+			// memcpy (&password_check[0], &inputstr[0], 17 );
+			// pw_same = 1;
+			// for (ch=0;ch<16;ch++)
+			// {
+				// if (password[ch] != password_check[ch])
+					// pw_same = 0;
+			// }
+			// if (pw_same)
+				// pw_ok = 1;
+			// else
+				// printf ("The input passwords did not match.\n");
 			pw_ok = 1;
 		}
 		else
@@ -378,19 +395,20 @@ main( int argc, char * argv[] )
 #endif
 		if (!num_rows) // If not in the database already
 		{
-			/* printf ("Verify e-mail address: ");
-			scanf ("%s", inputstr );
-			memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
-			pw_same = 1;
-			for (ch=0;ch<strlen(email);ch++)
-			{
-				if (email[ch] != email_check[ch])
-					pw_same = 0;
-			}
-			if (pw_same)
-				pw_ok = 1;
-			else
-				printf ("The input e-mail addresses did not match.\n"); */
+			// Theres no hiding of characters so theres no reason to have to type twice
+			// printf ("Verify e-mail address: ");
+			// scanf ("%s", inputstr );
+			// memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
+			// pw_same = 1;
+			// for (ch=0;ch<strlen(email);ch++)
+			// {
+				// if (email[ch] != email_check[ch])
+					// pw_same = 0;
+			// }
+			// if (pw_same)
+				// pw_ok = 1;
+			// else
+				// printf ("The input e-mail addresses did not match.\n");
 			pw_ok = 1;
 		}
 	}
@@ -417,7 +435,8 @@ main( int argc, char * argv[] )
 #endif
 	reg_seconds = (unsigned) regtime / 3600L;
 	ch = strlen (&password[0]);
-	_itoa (reg_seconds, &config_data[0], 10 );
+	//_itoa (reg_seconds, &config_data[0], 10 );  // outdated and windows only i think, instead use:
+	sprintf (&config_data[0], "%d", reg_seconds);
 	//Throw some salt in the game ;)
 	sprintf (&password[ch], "_%s_salt", &config_data[0] );
 	//printf ("New password = %s\n", password );
@@ -427,7 +446,7 @@ main( int argc, char * argv[] )
 	md5password[32] = 0;
 	if (!num_rows)
 	{
-		/* First account created is always GM. */
+		// First account created is always GM.
 		guildcard_number = 42000001;
 #ifdef NO_SQL
 		account_data[num_accounts] = malloc ( sizeof ( L_ACCOUNT_DATA ) );
@@ -441,7 +460,8 @@ main( int argc, char * argv[] )
 		account_data[num_accounts]->isgm = 1;
 		account_data[num_accounts]->teamid = -1;
 		UpdateDataFile ( "account.dat", 0, account_data[num_accounts], sizeof ( L_ACCOUNT_DATA ), 1 );
-#else
+#endif
+#ifndef NO_SQL
 		sprintf (&myQuery[0], "INSERT into account_data (username,password,email,regtime,guildcard,isgm,isactive) VALUES ('%s','%s','%s','%u','%u','1','1')", username, md5password, email, reg_seconds, guildcard_number );
 #endif
 	}
@@ -465,7 +485,8 @@ main( int argc, char * argv[] )
 		account_data[num_accounts]->isgm = 0;
 		account_data[num_accounts]->teamid = -1;
 		UpdateDataFile ( "account.dat", num_accounts, account_data[num_accounts], sizeof ( L_ACCOUNT_DATA ), 1 );
-#else
+#endif
+#ifndef NO_SQL
 		sprintf (&myQuery[0], "INSERT into account_data (username,password,email,regtime,isactive) VALUES ('%s','%s','%s','%u','1')", username, md5password, email, reg_seconds );
 #endif
 	}
