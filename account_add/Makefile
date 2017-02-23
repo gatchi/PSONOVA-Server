@@ -10,7 +10,7 @@ else
     MYSQL = -lmysqlclient
 endif
 
-CFLAGS = 
+CFLAGS = -g
 CC = gcc
 
 account-add: account_add.o md5.o
