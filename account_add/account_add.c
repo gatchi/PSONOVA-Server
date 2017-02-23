@@ -1,11 +1,11 @@
 /****************************************************************/
-/*	Author:	Sodaboy												*/
-/*	Date:	07/22/2008											*/
-/*	accountadd.c :  Adds an account to the Tethealla PSO		*/
-/*			server...											*/
+/*	Author:	Sodaboy                                             */
+/*	Date:	07/22/2008                                          */
+/*	accountadd.c :  Adds an account to the Tethealla PSO        */
+/*			server...                                           */
 /*																*/
-/*	History:													*/
-/*		07/22/2008  TC  First version...						*/
+/*	History:                                                    */
+/*		07/22/2008  TC  First version...                        */
 /****************************************************************/
 
 //#define NO_SQL
@@ -234,11 +234,10 @@ main( int argc, char * argv[] )
 	LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
 #endif
 #ifndef NO_SQL
-	if ( (myData = mysql_init((MYSQL*) 0)) && 
-		mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port,
-		NULL, 0 ) )
+	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
 	{
-		if ( mysql_select_db( myData, &mySQL_Database[0] ) < 0 ) {
+		if ( mysql_select_db( myData, &mySQL_Database[0] ) < 0 )
+		{
 			printf( "Can't select the %s database !\n", mySQL_Database ) ;
 			mysql_close( myData ) ;
 			return 2 ;
@@ -319,19 +318,19 @@ main( int argc, char * argv[] )
 		{
 			memcpy (&password[0], &inputstr[0], 17 );
 			// Theres no hiding of characters so theres no reason to have to type twice
-			/*printf ("Verify password: ");
-			scanf ("%s", inputstr );
-			memcpy (&password_check[0], &inputstr[0], 17 );
-			pw_same = 1;
-			for (ch=0;ch<16;ch++)
-			{
-				if (password[ch] != password_check[ch])
-					pw_same = 0;
-			}
-			if (pw_same)
-				pw_ok = 1;
-			else
-				printf ("The input passwords did not match.\n");*/
+			// printf ("Verify password: ");
+			// scanf ("%s", inputstr );
+			// memcpy (&password_check[0], &inputstr[0], 17 );
+			// pw_same = 1;
+			// for (ch=0;ch<16;ch++)
+			// {
+				// if (password[ch] != password_check[ch])
+					// pw_same = 0;
+			// }
+			// if (pw_same)
+				// pw_ok = 1;
+			// else
+				// printf ("The input passwords did not match.\n");
 			pw_ok = 1;
 		}
 		else
@@ -384,19 +383,19 @@ main( int argc, char * argv[] )
 		if (!num_rows) // If not in the database already
 		{
 			// Theres no hiding of characters so theres no reason to have to type twice
-			/* printf ("Verify e-mail address: ");
-			scanf ("%s", inputstr );
-			memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
-			pw_same = 1;
-			for (ch=0;ch<strlen(email);ch++)
-			{
-				if (email[ch] != email_check[ch])
-					pw_same = 0;
-			}
-			if (pw_same)
-				pw_ok = 1;
-			else
-				printf ("The input e-mail addresses did not match.\n"); */
+			// printf ("Verify e-mail address: ");
+			// scanf ("%s", inputstr );
+			// memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
+			// pw_same = 1;
+			// for (ch=0;ch<strlen(email);ch++)
+			// {
+				// if (email[ch] != email_check[ch])
+					// pw_same = 0;
+			// }
+			// if (pw_same)
+				// pw_ok = 1;
+			// else
+				// printf ("The input e-mail addresses did not match.\n");
 			pw_ok = 1;
 		}
 	}
@@ -434,7 +433,7 @@ main( int argc, char * argv[] )
 	md5password[32] = 0;
 	if (!num_rows)
 	{
-		/* First account created is always GM. */
+		// First account created is always GM.
 		guildcard_number = 42000001;
 #ifdef NO_SQL
 		account_data[num_accounts] = malloc ( sizeof ( L_ACCOUNT_DATA ) );
