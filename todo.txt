@@ -2,30 +2,23 @@ TODO
 =====
   
 - enable sending of simple mail/announcements from terminal
-
 - replace libraries with sources with DLLs or something (make DLLs?)
-
 - make shipin port (login_server.c) configurable via text file
-
 - add json generation for server settings
   - keep ini files for compatibility (and speed of setup), use JSONs for settings changes
-
 - make localgms.ini more user friendly
-
 - add sample inis and such to the bin category (or rename to "install" or something)
 
-
+Features
+--------
+- equip everything command
 
 Bugs
 ----
-- accound add bug
-  ! might have something to do with gets(), cause "could not bind to port/hit enter" in login_server.c has a similar effect
-
 - dex on HUcaseals does nothing?
-
-- bug when shipkey.bin existts and matches login shipkey.bin but doesnt match the entry in the sql database (no entry) (login drops ship server repeatedly, as if timing out, no good error messages, no authentication error messages) (soly says check out LoginProcessPacket)
-
-- visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up.
-
 - cant open trade window
   - trade window can be prepared and sent but not received.
+- visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up.
+- accound add bug: doesnt output proper mysql error when wrong database is selected
+- bug when shipkey.bin existts and matches login shipkey.bin but doesnt match the entry in the sql database (no entry) (login drops ship server repeatedly, as if timing out, no good error messages, no authentication error messages) (soly says check out LoginProcessPacket)
+
