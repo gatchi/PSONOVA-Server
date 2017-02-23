@@ -174,7 +174,7 @@ main( int argc, char * argv[] )
 	char mySQL_Database[255] = {0};
 	unsigned int mySQL_Port;
 	int config_index = 0;
-	char config_data[255];
+	char config_data[255] = {0};
 
 	unsigned char MDBuffer[17] = {0};
 
@@ -192,28 +192,32 @@ main( int argc, char * argv[] )
 		{
 			if (config_index < 0x04)
 			{
-				ch = strlen (&config_data[0]);
-				if (config_data[ch-1] == 0x0A)
-					config_data[ch--]  = 0x00;
-				config_data[ch] = 0;
+				// Remove newlines and any carriage returns
+				char len = strlen (&config_data[0]);
+				if (config_data[len-1] == '\n')
+				{
+					config_data[len-1]  = '\0';
+					if (config_data[len-2] == '\r');
+						config_data[len-2] = '\0';
+				}
 			}
 			switch (config_index)
 			{
 			case 0x00:
 				// MySQL Host
-				memcpy (&mySQL_Host[0], &config_data[0], ch+1);
+				strcpy (&mySQL_Host[0], &config_data[0]);
 				break;
 			case 0x01:
 				// MySQL Username
-				memcpy (&mySQL_Username[0], &config_data[0], ch+1);
+				strcpy (&mySQL_Username[0], &config_data[0]);
 				break;
 			case 0x02:
 				// MySQL Password
-				memcpy (&mySQL_Password[0], &config_data[0], ch+1);
+				strcpy (&mySQL_Password[0], &config_data[0]);
 				break;
 			case 0x03:
 				// MySQL Database
-				memcpy (&mySQL_Database[0], &config_data[0], ch+1);
+				strcpy (&mySQL_Database[0], &config_data[0]);
 				break;
 			case 0x04:
 				// MySQL Port
@@ -224,6 +228,9 @@ main( int argc, char * argv[] )
 			}
 			config_index++;
 		}
+		
+		// Clear config_data after each fgets
+		memset (config_data, 0, 255 * sizeof (char));
 	}
 	fclose (fp);
 
@@ -238,11 +245,9 @@ main( int argc, char * argv[] )
 	LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
 #endif
 #ifndef NO_SQL
-	//if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
-	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, "127.0.0.1", "pso_admin", "boopville", NULL, 3306, NULL, 0 ) )
+	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
 	{
-		//if ( mysql_select_db( myData, mySQL_Database ) < 0 )
-		if ( mysql_select_db( myData, "pso_db" ) < 0 )
+		if ( mysql_select_db( myData, mySQL_Database ) < 0 )
 		{
 			// In the linux version this doesnt get triggered when the wrong database is selected!!!
 			// It just says cant query the server!!!
