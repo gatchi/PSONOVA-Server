@@ -14,6 +14,10 @@
 #include	<windows.h>
 #endif
 
+#ifdef __gnu_linux__
+#include	<stdlib.h>
+#endif
+
 #include	<stdio.h>
 #include	<string.h>
 #include	<time.h>
@@ -181,63 +185,68 @@ main( int argc, char * argv[] )
 		printf ("The configuration file tethealla.ini appears to be missing.\n");
 		return 1;
 	}
-	else
-		while (fgets (&config_data[0], 255, fp) != NULL)
-		{
-			if (config_data[0] != 0x23)
-			{
-				if (config_index < 0x04)
-				{
-					ch = strlen (&config_data[0]);
-					if (config_data[ch-1] == 0x0A)
-						config_data[ch--]  = 0x00;
-					config_data[ch] = 0;
-				}
-				switch (config_index)
-				{
-				case 0x00:
-					// MySQL Host
-					memcpy (&mySQL_Host[0], &config_data[0], ch+1);
-					break;
-				case 0x01:
-					// MySQL Username
-					memcpy (&mySQL_Username[0], &config_data[0], ch+1);
-					break;
-				case 0x02:
-					// MySQL Password
-					memcpy (&mySQL_Password[0], &config_data[0], ch+1);
-					break;
-				case 0x03:
-					// MySQL Database
-					memcpy (&mySQL_Database[0], &config_data[0], ch+1);
-					break;
-				case 0x04:
-					// MySQL Port
-					mySQL_Port = atoi (&config_data[0]);
-					break;
-				default:
-					break;
-				}
-				config_index++;
-			}
-		}
-		fclose (fp);
-
-	if (config_index < 5)
+	
+	while ((fgets (config_data, 255, fp) != NULL) && (config_index < 5))
 	{
-		printf ("tethealla.ini seems to be corrupted.\n");
-		return 1;
+		if (config_data[0] != 0x23)
+		{
+			if (config_index < 0x04)
+			{
+				ch = strlen (&config_data[0]);
+				if (config_data[ch-1] == 0x0A)
+					config_data[ch--]  = 0x00;
+				config_data[ch] = 0;
+			}
+			switch (config_index)
+			{
+			case 0x00:
+				// MySQL Host
+				memcpy (&mySQL_Host[0], &config_data[0], ch+1);
+				break;
+			case 0x01:
+				// MySQL Username
+				memcpy (&mySQL_Username[0], &config_data[0], ch+1);
+				break;
+			case 0x02:
+				// MySQL Password
+				memcpy (&mySQL_Password[0], &config_data[0], ch+1);
+				break;
+			case 0x03:
+				// MySQL Database
+				memcpy (&mySQL_Database[0], &config_data[0], ch+1);
+				break;
+			case 0x04:
+				// MySQL Port
+				mySQL_Port = atoi (&config_data[0]);
+				break;
+			default:
+				break;
+			}
+			config_index++;
+		}
 	}
+	fclose (fp);
+
+	// if (config_index = 5)
+	// {
+		// printf ("tethealla.ini seems to be corrupted.\n");
+		// return 1;
+	// }
 	
 #ifdef NO_SQL
 	num_accounts = 0;
 	LoadDataFile ("account.dat", &num_accounts, &account_data[0], sizeof(L_ACCOUNT_DATA));
 #endif
 #ifndef NO_SQL
-	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
+	//if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, &mySQL_Host[0], &mySQL_Username[0], &mySQL_Password[0], NULL, mySQL_Port, NULL, 0 ) )
+	if ( (myData = mysql_init((MYSQL*) 0)) && mysql_real_connect( myData, "127.0.0.1", "pso_admin", "boopville", NULL, 3306, NULL, 0 ) )
 	{
-		if ( mysql_select_db( myData, &mySQL_Database[0] ) < 0 )
+		//if ( mysql_select_db( myData, mySQL_Database ) < 0 )
+		if ( mysql_select_db( myData, "pso_db" ) < 0 )
 		{
+			// In the linux version this doesnt get triggered when the wrong database is selected!!!
+			// It just says cant query the server!!!
+			// Why is this getting skipped!!!!!!!!!!!!!
 			printf( "Can't select the %s database !\n", mySQL_Database ) ;
 			mysql_close( myData ) ;
 			return 2 ;
@@ -251,7 +260,6 @@ main( int argc, char * argv[] )
 		return 1 ;
 	}
 #endif
-
 	printf ("Tethealla Server Account Addition\n");
 	printf ("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
 	pw_ok = 0;
