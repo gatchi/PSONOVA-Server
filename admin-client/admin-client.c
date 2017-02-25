@@ -13,10 +13,17 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 //#include "admin-client.h"
 
 #define SHIP_URL "67.161.8.229"
 #define SHIP_PORT 5278
+#define BLOCK1_PORT 5279
+
+void dumpx (unsigned char * string);
+int readmesg (SOCKET socket_with_something_to_say);
+void sendmesg (SOCKET socket_to_send_to);
 
 int main ()
 {
@@ -30,32 +37,93 @@ int main ()
 		printf ("Could not negotiate with winsock.\n");
 	
 	// Make a socket
-	SOCKET connectsock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-	if (connectsock == INVALID_SOCKET)
+	SOCKET blocksock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (blocksock == INVALID_SOCKET)
 		printf ("Whoops, fucked up socket: %ld\n", WSAGetLastError());
 	else
 		printf ("Socket created.\n");
 	
-	// Setup ship sockaddr
-	struct sockaddr_in ssa;
-	ssa.sin_family = AF_INET;
-	ssa.sin_addr.s_addr = inet_addr (SHIP_URL);
-	ssa.sin_port = htons (SHIP_PORT);
+	// Setup block sockaddr to represent the block server
+	struct sockaddr_in bsa;
+	bsa.sin_family = AF_INET;
+	bsa.sin_addr.s_addr = inet_addr (SHIP_URL);
+	bsa.sin_port = htons (BLOCK1_PORT);
 	
-	// Connect to ship socket
-	int result = connect (connectsock, (struct sockaddr *) &ssa, sizeof(ssa));
-	if (result < 0)
+	// Try to connect to a ship block
+	int result = connect (blocksock, (struct sockaddr *) &bsa, sizeof(bsa));
+	if (result <0)
 		printf ("Can't connect: %d\n", WSAGetLastError());
 	else
-		printf ("Connection made.\n");
+		printf ("Connection made to a block.\n");
 	
-	//---- Accept 'ShipSend0E' -----//
+	// Let's see what the ship sends
+	readmesg (blocksock);
 	
 	//---- Maybe encryption --------//
 	
 	//---- Start command reading ---//
+	
+	return 0;
 }
+
+void sendmesg (SOCKET sock)
+{
+	int result;
+	unsigned char mesg[13] = "Anyone there?";
+	result = send (sock, mesg, (int)strlen(mesg), 0);
+	if (result < 0)
+		printf ("Can't send: %d\n", WSAGetLastError());
+	else
+		printf ("Message sent.\n");
+}
+
+/*
+ * If socket has something to say, it displays it and then exits with 0.
+ * It also exists with 0 if it receives a close request.
+ * Exits with 1 if an error is encountered, not before printing the error.
+ */
+int readmesg (SOCKET sock)
+{
+	int result;
+	char recvbuff[512] = {0};
+	int already_sent = 0;  // Update to 1 when response has been sent
+	do
+	{
+		result = recv (sock, recvbuff, 512, 0);
+		if (result > 0)
+		{
+			printf ("Data recieved. Message:\n");
+			dumpx (recvbuff);
+			if (!already_sent)
+			{
+				printf ("Sending one back...\n");
+				sendmesg (sock);
+				already_sent = 1;
+			}
+		}
+		else if (result == 0)
+		{
+			printf ("Connection closed.\n");
+			closesocket (sock);
+		}
+		else
+		{
+			printf ("Connection error: %d\n", WSAGetLastError());
+			closesocket (sock);
+			return 1;
+		}
+	} while (result > 0);
+}
+
+void dumpx (unsigned char * in)
+{
+	//int len = strlen (in);
+	int i;
+	for (i=0; i<512; i++)
+		printf ("%2.2X ", in[i]);
+	printf ("\n");
+}
+		
 
 // Toggle announce
 // void toggleAnnounce (CLIENT * c)
