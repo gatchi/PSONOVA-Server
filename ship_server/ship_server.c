@@ -979,7 +979,6 @@ void initialize_connection (CLIENT* connect)
 	unsigned ch, ch2;
 
 	// Free backup character memory
-
 	if (connect->character_backup)
 	{
 		if (connect->mode)
@@ -988,6 +987,7 @@ void initialize_connection (CLIENT* connect)
 		connect->character_backup = NULL;
 	}
 
+	// Only one account at a time, it seems
 	if (connect->guildcard)
 	{
 		removeClientFromLobby (connect);
@@ -1002,6 +1002,7 @@ void initialize_connection (CLIENT* connect)
 		}
 	}
 
+	// Um, re-order serverConnectionList i guess?
 	if (connect->plySockfd >= 0)
 	{
 		ch2 = 0;
@@ -1076,6 +1077,7 @@ void start_encryption(CLIENT* connect)
 		}
 	}
 
+	// This is where the ship preps the first message to send
 	memcpy (&connect->sndbuf[0], &Packet03[0], sizeof (Packet03));
 	for (c=0;c<0x30;c++)
 	{
@@ -14198,17 +14200,17 @@ void ShipProcessPacket (CLIENT* client)
 {
 	switch (client->decryptbuf[0x02])
 	{
-	case 0x05:
-		printf ("Client has closed the connection.\n");
-		client->todc = 1;
-		break;
-	case 0x10:
-		Command10 (0, client);
-		break;
-	case 0x1D:
-		client->response = (unsigned) servertime;
-		break;
-	case 0x93:
+		case 0x05:
+			printf ("Client has closed the connection.\n");
+			client->todc = 1;
+			break;
+		case 0x10:
+			Command10 (0, client);
+			break;
+		case 0x1D:
+			client->response = (unsigned) servertime;
+			break;
+		case 0x93:
 		{
 			unsigned ch,ch2,ipaddr;
 			int banned = 0, match;
@@ -16050,13 +16052,10 @@ int main()
 							for (pkt_c=0;pkt_c<pkt_len;pkt_c++)
 							{
 								workConnect->rcvbuf[workConnect->rcvread++] = tmprcv[pkt_c];
-
-								if (workConnect->rcvread == 8)
+								
+								if (workConnect->rcvread == 8)  // Decrypt the packet header after receiving 8 bytes.
 								{
-									// Decrypt the packet header after receiving 8 bytes.
-
 									cipher_ptr = &workConnect->client_cipher;
-
 									decryptcopy ( &workConnect->decryptbuf[0], &workConnect->rcvbuf[0], 8 );
 
 									// Make sure we're expecting a multiple of 8 bytes.
