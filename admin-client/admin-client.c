@@ -21,9 +21,15 @@
 #define SHIP_PORT 5278
 #define BLOCK1_PORT 5279
 
-void dumpx (unsigned char * string);
+#define SERVER_KEY_INDEX    104
+#define SERVER_KEY_LEN       48
+#define CLIENT_KEY_INDEX    152
+#define CLIENT_KEY_LEN       48
+
+void dumpx (unsigned char * string, int string_length);
 int readmesg (SOCKET socket_with_something_to_say);
 void sendmesg (SOCKET socket_to_send_to);
+void extractkey (unsigned char * packet03, int key_index, int key_length);
 
 int main ()
 {
@@ -93,13 +99,15 @@ int readmesg (SOCKET sock)
 		if (result > 0)
 		{
 			printf ("Data recieved. Message:\n");
-			dumpx (recvbuff);
-			if (!already_sent)
-			{
-				printf ("Sending one back...\n");
-				sendmesg (sock);
-				already_sent = 1;
-			}
+			//dumpx (recvbuff, 200);
+			extractkey (recvbuff, SERVER_KEY_INDEX, SERVER_KEY_LEN);
+			extractkey (recvbuff, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
+			// if (!already_sent)
+			// {
+				// printf ("Sending one back...\n");
+				// sendmesg (sock);
+				// already_sent = 1;
+			// }
 		}
 		else if (result == 0)
 		{
@@ -115,12 +123,31 @@ int readmesg (SOCKET sock)
 	} while (result > 0);
 }
 
-void dumpx (unsigned char * in)
+void extractkey (unsigned char * in, int keyloc, int keylen)
 {
-	//int len = strlen (in);
+	unsigned char buff[keylen];
+	unsigned char * key = buff;
 	int i;
-	for (i=0; i<512; i++)
+	for (i=0; i<keylen; i++)
+		buff[i] = in[keyloc+i];
+	//dumpx (key, keylen);
+}
+
+void dumpx (unsigned char * in, int len)
+{
+	printf ("\n");
+	int i = 0;
+	int j = 1;
+	printf ("%2.2d: ", j++);
+	while (i<len)
+	{
 		printf ("%2.2X ", in[i]);
+		if (++i % 10 == 0)
+		{
+			printf ("\n");
+			printf ("%2.2d: ", j++);
+		}
+	}
 	printf ("\n");
 }
 		
