@@ -27,10 +27,9 @@
 #define CLIENT_KEY_LEN       48
 
 void dumpx (unsigned char * string, int string_length);
-int readmesg (SOCKET socket_with_something_to_say);
 unsigned char * pollmesg (SOCKET socket_with_something_to_say);
 void sendmesg (SOCKET socket_to_send_to);
-void extractkey (unsigned char * packet03, int key_index, int key_length);
+int extractkey (unsigned char * packet03, unsigned char * key, int key_index, int key_length);
 
 int main ()
 {
@@ -63,11 +62,38 @@ int main ()
 	else
 		printf ("Connection made to a block.\n");
 	
-	// Let's see what the ship sends
+	//---- Start encryption --------//
 	
-	//---- Maybe encryption --------//
+	// Receive first message (which should be encryption start packet (p03)
 	unsigned char * recvbuff;
+	unsigned char * serverkey;
+	unsigned char * clientkey;
+	
+	serverkey = (unsigned char *) calloc (SERVER_KEY_LEN, SERVER_KEY_LEN * sizeof(char));
+	clientkey = (unsigned char *) calloc (CLIENT_KEY_LEN, CLIENT_KEY_LEN * sizeof(char));
+	
 	recvbuff = pollmesg (blocksock);
+	
+	if (recvbuff == NULL)
+	{
+		printf ("Connection error while waiting for encryption packet. Aborted.\n");
+		return 1;
+	}
+	
+	if (recvbuff[0] == 0xC8)  // 200 (size of packet)
+	{
+		// This is almost certainly it
+		extractkey (recvbuff, serverkey, SERVER_KEY_INDEX, SERVER_KEY_LEN);
+		extractkey (recvbuff, clientkey, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
+	}
+	else
+	{
+		printf ("Received wrong packet. Are you sure youre connecting to the right server?\n");
+		return 2;
+	}
+	
+	dumpx (serverkey, SERVER_KEY_LEN);
+	dumpx (clientkey, CLIENT_KEY_LEN);
 	
 	//---- Start command reading ---//
 	
@@ -118,14 +144,16 @@ unsigned char * pollmesg (SOCKET sock)
 	} while (result > 0);
 }
 
-void extractkey (unsigned char * in, int keyloc, int keylen)
+int extractkey (unsigned char * in, unsigned char * key, int keyloc, int keylen)
 {
-	unsigned char buff[keylen];
-	unsigned char * key = buff;
+	//unsigned char * buff;
+	//buff = (unsigned char *) malloc ( keylen*sizeof(char) );
 	int i;
 	for (i=0; i<keylen; i++)
-		buff[i] = in[keyloc+i];
+		key[i] = in[keyloc+i];
 	//dumpx (key, keylen);
+	//return buff;
+	return i;
 }
 
 void dumpx (unsigned char * in, int len)
