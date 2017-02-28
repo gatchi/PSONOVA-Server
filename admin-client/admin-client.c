@@ -28,6 +28,7 @@
 
 void dumpx (unsigned char * string, int string_length);
 int readmesg (SOCKET socket_with_something_to_say);
+unsigned char * pollmesg (SOCKET socket_with_something_to_say);
 void sendmesg (SOCKET socket_to_send_to);
 void extractkey (unsigned char * packet03, int key_index, int key_length);
 
@@ -63,9 +64,10 @@ int main ()
 		printf ("Connection made to a block.\n");
 	
 	// Let's see what the ship sends
-	readmesg (blocksock);
 	
 	//---- Maybe encryption --------//
+	unsigned char * recvbuff;
+	recvbuff = pollmesg (blocksock);
 	
 	//---- Start command reading ---//
 	
@@ -88,26 +90,20 @@ void sendmesg (SOCKET sock)
  * It also exists with 0 if it receives a close request.
  * Exits with 1 if an error is encountered, not before printing the error.
  */
-int readmesg (SOCKET sock)
+unsigned char * pollmesg (SOCKET sock)
 {
 	int result;
 	char recvbuff[512] = {0};
+	unsigned char * mesg = recvbuff;
 	int already_sent = 0;  // Update to 1 when response has been sent
 	do
 	{
 		result = recv (sock, recvbuff, 512, 0);
 		if (result > 0)
 		{
-			printf ("Data recieved. Message:\n");
-			//dumpx (recvbuff, 200);
-			extractkey (recvbuff, SERVER_KEY_INDEX, SERVER_KEY_LEN);
-			extractkey (recvbuff, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
-			// if (!already_sent)
-			// {
-				// printf ("Sending one back...\n");
-				// sendmesg (sock);
-				// already_sent = 1;
-			// }
+			printf ("Data recieved.\n");
+			dumpx (mesg, 200);
+			return mesg;
 		}
 		else if (result == 0)
 		{
@@ -117,8 +113,7 @@ int readmesg (SOCKET sock)
 		else
 		{
 			printf ("Connection error: %d\n", WSAGetLastError());
-			closesocket (sock);
-			return 1;
+			return NULL;
 		}
 	} while (result > 0);
 }
