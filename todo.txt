@@ -2,6 +2,7 @@ TODO
 =====
   
 - enable sending of simple mail/announcements from terminal
+- label commands and sends and packets
 - replace libraries with sources with DLLs or something (make DLLs?)
 - make shipin port (login_server.c) configurable via text file
 - add json generation for server settings
