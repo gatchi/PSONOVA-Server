@@ -15,7 +15,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "admin-client.h"
+#include "admin-client.h"
+#include "pso_crypt.h"
+#include "ship-funcs.h"
 
 //#define SHIP_URL  "67.161.8.229"
 #define SHIP_URL     "127.0.0.1"
@@ -96,6 +98,28 @@ int main ()
 	dumpx (serverkey, SERVER_KEY_LEN);
 	dumpx (clientkey, CLIENT_KEY_LEN);
 	
+	// Lets try disconnecting with a disconnect packet
+	
+	// Setup encryption
+	PSO_CRYPT * hiscipher = calloc (1, sizeof(PSO_CRYPT));
+	PSO_CRYPT * mycipher = calloc (1, sizeof(PSO_CRYPT));
+	pso_crypt_table_init_bb (hiscipher, serverkey);
+	pso_crypt_table_init_bb (mycipher, clientkey);
+	
+	// Encrypt packet
+	int size = 0x08;
+	unsigned char * mesg = malloc (sizeof(char));
+	encryptcopy (mesg, Packet05, size, mycipher);
+	sendmesg (blocksock, mesg, size);
+	dumpx (mesg, size);
+	
+	// Unencrypt packet
+	unsigned char * dmesg = malloc (sizeof(char));
+	decryptcopy (dmesg, mesg, size, mycipher);
+	dumpx (dmesg, size);
+	
+	pollmesg (blocksock);
+	
 	//---- Start command reading ---//
 	
 	return 0;
@@ -173,8 +197,7 @@ void dumpx (unsigned char * in, int len)
 		}
 	}
 	printf ("\n");
-}
-		
+}	
 
 // Toggle announce
 // void toggleAnnounce (CLIENT * c)
