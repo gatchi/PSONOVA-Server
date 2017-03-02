@@ -17,7 +17,8 @@
 #include <string.h>
 //#include "admin-client.h"
 
-#define SHIP_URL  "67.161.8.229"
+//#define SHIP_URL  "67.161.8.229"
+#define SHIP_URL     "127.0.0.1"
 #define SHIP_PORT          5278
 #define BLOCK1_PORT        5279
 
