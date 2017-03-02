@@ -119,6 +119,7 @@ void sendmesg (SOCKET sock)
  */
 unsigned char * pollmesg (SOCKET sock)
 {
+	printf ("Listening...\n");
 	int result;
 	char recvbuff[512] = {0};
 	unsigned char * mesg = recvbuff;
