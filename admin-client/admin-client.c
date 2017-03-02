@@ -29,7 +29,7 @@
 
 void dumpx (unsigned char * string, int string_length);
 unsigned char * pollmesg (SOCKET socket_with_something_to_say);
-void sendmesg (SOCKET socket_to_send_to);
+void sendmesg (SOCKET socket_to_send_via, char * message, int message_length);
 int extractkey (unsigned char * packet03, unsigned char * key, int key_index, int key_length);
 
 int main ()
@@ -101,11 +101,10 @@ int main ()
 	return 0;
 }
 
-void sendmesg (SOCKET sock)
+void sendmesg (SOCKET sock, char * mesg, int length)
 {
 	int result;
-	unsigned char mesg[13] = "Anyone there?";
-	result = send (sock, mesg, (int)strlen(mesg), 0);
+	result = send (sock, mesg, length, 0);
 	if (result < 0)
 		printf ("Can't send: %d\n", WSAGetLastError());
 	else
