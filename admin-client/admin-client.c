@@ -19,6 +19,9 @@
 #include "pso_crypt.h"
 #include "ship-funcs.h"
 
+#define CONNECTION_ERROR      1
+#define WRONG_PACKET_ERROR    2
+
 //#define SHIP_URL  "67.161.8.229"
 #define SHIP_URL     "127.0.0.1"
 #define SHIP_PORT          5278
@@ -164,7 +167,7 @@ unsigned char * pollmesg (SOCKET sock)
 		else
 		{
 			printf ("Connection error: %d\n", WSAGetLastError());
-			return NULL;
+			exit(CONNECTION_ERROR);
 		}
 	} while (result > 0);
 }

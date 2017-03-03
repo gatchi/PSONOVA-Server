@@ -1,2 +1,6 @@
 *.exe
 *.h
+*.txt
+*.pkt
+spare-funcs.c
+scratch.c
