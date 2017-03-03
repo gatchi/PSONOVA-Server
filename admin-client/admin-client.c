@@ -31,21 +31,33 @@
 #define SERVER_KEY_LEN       48
 #define CLIENT_KEY_INDEX    152
 #define CLIENT_KEY_LEN       48
+#define HEADER_SIZE           8  // (in bytes)
+#define MAX_PACKET_SIZE     200
+#define PACKET_TYPE_LOC       2
+#define PACKET_LEN_LOC        0
 
 void netStartup();
 SOCKET dock();
 void catchCryptPacket(SOCKET socket, unsigned char * receive_buffer, unsigned char * server_key, unsigned char * client_key);
 void dumpx (unsigned char * string, int string_length);
-unsigned char * pollmesg (SOCKET socket_with_something_to_say);
-void sendmesg (SOCKET socket_to_send_via, char * message, int message_length);
+unsigned char * pollmesg (SOCKET socket_with_something_to_say, unsigned char * receive_buffer);
+void sendmesg (SOCKET socket_to_send_via, unsigned char * message, int message_length);
+void sendemesg (SOCKET socket_to_send_via, unsigned char * message_buffer, const unsigned char * template, int message_length, PSO_CRYPT * crypt_st);
 int extractkey (unsigned char * packet03, unsigned char * key, int key_index, int key_length);
+void encryptcopy (unsigned char * destination, const unsigned char * source, unsigned int size, PSO_CRYPT * crypt_st);
 
 int main ()
 {
 	SOCKET blocksock;
 	unsigned char * recvbuff = calloc (MAX_PACKET_SIZE, sizeof(char));
+	unsigned char header[HEADER_SIZE] = {0};
+	unsigned char dheader[HEADER_SIZE] = {0};  // decrypted header
+	unsigned char * mesg = calloc (MAX_PACKET_SIZE, sizeof(char));
 	unsigned char * serverkey = (unsigned char *) calloc (SERVER_KEY_LEN, SERVER_KEY_LEN * sizeof(char));
 	unsigned char * clientkey = (unsigned char *) calloc (CLIENT_KEY_LEN, CLIENT_KEY_LEN * sizeof(char));
+	PSO_CRYPT * theircipher = calloc (1, sizeof(PSO_CRYPT));
+	PSO_CRYPT * mycipher = calloc (1, sizeof(PSO_CRYPT));
+	
 	//---- Connect to ship ------//
 	
 	// Negotiate with winsock (windows networking) to get winsock data by providing version request
@@ -60,31 +72,50 @@ int main ()
 	catchCryptPacket(blocksock, recvbuff, serverkey, clientkey);
 	
 	// Setup encryption
-	PSO_CRYPT * hiscipher = calloc (1, sizeof(PSO_CRYPT));
-	PSO_CRYPT * mycipher = calloc (1, sizeof(PSO_CRYPT));
-	pso_crypt_table_init_bb (hiscipher, serverkey);
+	pso_crypt_table_init_bb (theircipher, serverkey);
 	pso_crypt_table_init_bb (mycipher, clientkey);
 	
-	// Encrypt packet
-	int size = 0x08;
-	unsigned char * mesg = malloc (sizeof(char));
-	encryptcopy (mesg, Packet05, size, mycipher);
-	sendmesg (blocksock, mesg, size);
-	dumpx (mesg, size);
+	// Send packet login packet (p93)
+	printf ("Sending login packet...\n");
+	sendemesg (blocksock, mesg, Packet93, Packet93[PACKET_LEN_LOC], mycipher);
 	
-	// Unencrypt packet
-	unsigned char * dmesg = malloc (sizeof(char));
-	decryptcopy (dmesg, mesg, size, mycipher);
-	dumpx (dmesg, size);
-	
-	pollmesg (blocksock);
+	// Listen loop
+	unsigned int pkttype;
+	do {
+		printf ("Listening for reply...\n");
+		pkttype = dheader[PACKET_TYPE_LOC];
+		memset (mesg, 0, MAX_PACKET_SIZE);
+		mesg = pollmesg (blocksock, recvbuff);
+		memcpy (header, mesg, HEADER_SIZE);
+		decryptcopy (dheader, header, HEADER_SIZE, theircipher);
+		
+		// Determine the packet's intentions
+		switch (pkttype)
+		{
+			case 0x1D:  // ping (send reply back)
+				sendemesg (blocksock, mesg, Packet1D, (int)Packet1D[PACKET_LEN_LOC], mycipher);
+				printf ("ping pong\n");
+				break;
+			default:
+				printf ("Not sure what this is...\n");
+				dumpx (dheader, HEADER_SIZE);
+				break;
+		}
+	} while (pkttype != 0x05);
 	
 	//---- Start command reading ---//
 	
 	return 0;
 }
 
-void sendmesg (SOCKET sock, char * mesg, int length)
+void sendemesg (SOCKET sock, unsigned char * mesg, const unsigned char * src, int length, PSO_CRYPT * cipher)
+{
+	memset (mesg, 0, length*sizeof(char));
+	encryptcopy (mesg, src, length, cipher);
+	sendmesg (sock, mesg, length);
+}
+
+void sendmesg (SOCKET sock, unsigned char * mesg, int length)
 {
 	int result;
 	result = send (sock, mesg, length, 0);
@@ -99,21 +130,17 @@ void sendmesg (SOCKET sock, char * mesg, int length)
  * It also exists with 0 if it receives a close request.
  * Exits with 1 if an error is encountered, not before printing the error.
  */
-unsigned char * pollmesg (SOCKET sock)
+unsigned char * pollmesg (SOCKET sock, unsigned char * buff)
 {
-	printf ("Listening...\n");
 	int result;
-	char recvbuff[512] = {0};
-	unsigned char * mesg = recvbuff;
-	int already_sent = 0;  // Update to 1 when response has been sent
 	do
 	{
-		result = recv (sock, recvbuff, 512, 0);
+		result = recv (sock, buff, MAX_PACKET_SIZE, 0);  // TODO ! changing the size broke this
 		if (result > 0)
 		{
 			printf ("Data recieved.\n");
-			dumpx (mesg, 200);
-			return mesg;
+			dumpx (buff, MAX_PACKET_SIZE);
+			return buff;
 		}
 		else if (result == 0)
 		{
