@@ -130,13 +130,9 @@ unsigned char * pollmesg (SOCKET sock)
 
 int extractkey (unsigned char * in, unsigned char * key, int keyloc, int keylen)
 {
-	//unsigned char * buff;
-	//buff = (unsigned char *) malloc ( keylen*sizeof(char) );
 	int i;
 	for (i=0; i<keylen; i++)
 		key[i] = in[keyloc+i];
-	//dumpx (key, keylen);
-	//return buff;
 	return i;
 }
 
