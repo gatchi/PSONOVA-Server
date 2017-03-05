@@ -1254,7 +1254,8 @@ void SendE2 (PLAYER* client)
 			num_keydata++;
 		}
 
-#else
+#endif
+#ifndef NO_SQL
 
 		sprintf (&myQuery[0], "SELECT * from key_data WHERE guildcard='%u'", client->guildcard );
 
@@ -1785,7 +1786,8 @@ void SendE4_E5(unsigned char slotnum, unsigned char selecting, PLAYER* client)
 		}
 
 
-#else
+#endif
+#ifndef NO_SQL
 		sprintf (&myQuery[0], "SELECT * from character_data WHERE guildcard='%u' AND slot='%u'", client->guildcard, slotnum );
 		//printf ("MySQL query %s\n", myQuery );
 
@@ -1890,7 +1892,8 @@ void SendE4_E5(unsigned char slotnum, unsigned char selecting, PLAYER* client)
 						Send1A ("Could not select character.", client);
 						client->todc = 1;
 					}
-#else
+#endif
+#ifndef NO_SQL
 					sprintf (&myQuery[0], "UPDATE security_data SET slotnum = '%u' WHERE guildcard = '%u'", slotnum, client->guildcard );
 					if ( mysql_query ( myData, &myQuery[0] ) )
 					{
@@ -2749,7 +2752,8 @@ void ShipProcessPacket (SHIP* ship)
 				}
 
 				compressShipPacket ( ship, &ship->encryptbuf[0x00], size );
-#else
+#endif
+#ifndef NO_SQL
 
 				sprintf (&myQuery[0], "SELECT * from character_data WHERE guildcard='%u' AND slot='%u'", guildcard, slotnum );
 
@@ -3125,7 +3129,8 @@ void ShipProcessPacket (SHIP* ship)
 					compressShipPacket (ship, &ship->encryptbuf[0x00], 6);
 				}
 
-#else
+#endif
+#ifndef NO_SQL
 
 				// Delete guild card if it exists...
 
@@ -4377,7 +4382,8 @@ void CharacterProcessPacket (PLAYER* client)
 				}
 			}
 
-#else
+#endif
+#ifndef NO_SQL
 			mysql_real_escape_string ( myData, &hwinfo[0], &client->decryptbuf[0x84], 8);
 			memcpy (&client->hwinfo[0], &hwinfo[0], 18);
 			sprintf (&myQuery[0], "SELECT * from account_data WHERE username='%s'", username );
@@ -4538,7 +4544,8 @@ void CharacterProcessPacket (PLAYER* client)
 							break;
 						}
 					}
-#else
+#endif
+#ifndef NO_SQL
 					sprintf (&myQuery[0], "UPDATE security_data set thirtytwo = '%i' WHERE guildcard = '%u'", security_thirtytwo_check, gcn );
 					// Nom, nom, nom.
 					if ( mysql_query ( myData, &myQuery[0] ) )
@@ -4706,7 +4713,7 @@ void LoginProcessPacket (PLAYER* client)
 	unsigned short clientver;
 	char md5password[34] = {0};
 	unsigned char MDBuffer[17] = {0};
-	unsigned gcn;
+	unsigned gcn;  // guildcard number
 	unsigned ch,connectNum,shipNum;
 #ifdef NO_SQL
 	long long truehwinfo;
@@ -4717,7 +4724,7 @@ void LoginProcessPacket (PLAYER* client)
 #endif
 
 
-	/* Only packet we're expecting during the login is 0x93 and 0x05. */
+	// Only packet we're expecting during the login is 0x93 and 0x05. 
 
 	switch (client->decryptbuf[0x02])
 	{
@@ -4767,7 +4774,8 @@ void LoginProcessPacket (PLAYER* client)
 
 			// DO HW BAN LATER
 
-#else
+#endif
+#ifndef NO_SQL
 			mysql_real_escape_string ( myData, &hwinfo[0], &client->decryptbuf[0x84], 8);
 			memcpy (&client->hwinfo[0], &hwinfo[0], 18);
 
@@ -4893,7 +4901,8 @@ void LoginProcessPacket (PLAYER* client)
 				security_data[free_record]->isgm = client->isgm;
 				security_data[free_record]->slotnum = -1;
 				UpdateDataFile ("security.dat", free_record, security_data[free_record], sizeof (L_SECURITY_DATA), new_record);
-#else
+#endif
+#ifndef NO_SQL
 				sprintf (&myQuery[0], "DELETE from security_data WHERE guildcard = '%u'", gcn );
 				mysql_query ( myData, &myQuery[0] );
 				mysql_real_escape_string ( myData, &security_sixtyfour_binary[0], (char*) &security_sixtyfour_check, 8);
@@ -5822,9 +5831,8 @@ main( int argc, char * argv[] )
 
 		if ( select ( nfds + 1, &ReadFDs, &WriteFDs, &ExceptFDs, &select_timeout ) > 0 ) 
 		{
-			if (FD_ISSET (login_sockfd, &ReadFDs))
+			if (FD_ISSET (login_sockfd, &ReadFDs))  // Someone's attempting to connect to the login server.
 			{
-				// Someone's attempting to connect to the login server.
 				ch = free_connection();
 				if (ch != 0xFFFF)
 				{
@@ -5843,9 +5851,8 @@ main( int argc, char * argv[] )
 				}
 			}
 
-			if (FD_ISSET (character_sockfd, &ReadFDs))
+			if (FD_ISSET (character_sockfd, &ReadFDs))  // Someone's attempting to connect to the character server.
 			{
-				// Someone's attempting to connect to the character server.
 				ch = free_connection();
 				if (ch != 0xFFFF)
 				{
@@ -5864,9 +5871,8 @@ main( int argc, char * argv[] )
 				}
 			}
 
-			if (FD_ISSET (ship_sockfd, &ReadFDs))
+			if (FD_ISSET (ship_sockfd, &ReadFDs))  // A ship is attempting to connect to the ship transfer port.
 			{
-				// A ship is attempting to connect to the ship transfer port.
 				ch = free_shipconnection();
 				if (ch != 0xFFFF)
 				{
@@ -5942,10 +5948,8 @@ main( int argc, char * argv[] )
 										initialize_connection ( workConnect );
 										break;
 									}
-									else
+									else  // Decrypt the rest of the data if needed.
 									{
-										/* Decrypt the rest of the data if needed. */
-
 										cipher_ptr = &workConnect->client_cipher;
 
 										*(long long*) &workConnect->packet[workConnect->packetdata] = *(long long*) &workConnect->peekbuf[0];
@@ -5958,6 +5962,7 @@ main( int argc, char * argv[] )
 
 										workConnect->packetsSec ++;
 
+										// DDOS guard
 										if ((workConnect->packetsSec   > 40)    ||
 											(workConnect->fromBytesSec > 15000) ||
 											(workConnect->toBytesSec   > 500000))
