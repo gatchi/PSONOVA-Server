@@ -15,15 +15,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "admin-client.h"
+#include <stdint.h>
+
 #include "pso_crypt.h"
 #include "ship-funcs.h"
+
+#include "admin-client.h"
 
 #define CONNECTION_ERROR      1
 #define WRONG_PACKET_ERROR    2
 
-//#define SHIP_URL  "67.161.8.229"
+#define GUILDCARD_INDEX    0x0C
+#define VERSION_INDEX      0x10
+#define USERNAME_MAX_LEN     17
+#define USERNAME_INDEX     0x1C
+#define PASSWORD_MAX_LEN     17
+#define PASSWORD_INDEX     0x4C
+
+#define LOGIN_URL    "127.0.0.1"
 #define SHIP_URL     "127.0.0.1"
+#define LOGIN_PORT        12000
 #define SHIP_PORT          5278
 #define BLOCK1_PORT        5279
 
@@ -36,83 +47,32 @@
 #define PACKET_TYPE_LOC       2
 #define PACKET_LEN_LOC        0
 
-void netStartup();
-SOCKET dock();
-void catchCryptPacket(SOCKET socket, unsigned char * receive_buffer, unsigned char * server_key, unsigned char * client_key);
-void dumpx (unsigned char * string, int string_length);
-unsigned char * pollmesg (SOCKET socket_with_something_to_say, unsigned char * receive_buffer);
-void sendmesg (SOCKET socket_to_send_via, unsigned char * message, int message_length);
-void sendemesg (SOCKET socket_to_send_via, unsigned char * message_buffer, const unsigned char * template, int message_length, PSO_CRYPT * crypt_st);
-int extractkey (unsigned char * packet03, unsigned char * key, int key_index, int key_length);
-void encryptcopy (unsigned char * destination, const unsigned char * source, unsigned int size, PSO_CRYPT * crypt_st);
+#define SERVER_LIST_SIZE      2
 
-int main ()
+void dumpx (unsigned char * in, int len)
 {
-	SOCKET blocksock;
-	unsigned char * recvbuff = calloc (MAX_PACKET_SIZE, sizeof(char));
-	unsigned char header[HEADER_SIZE] = {0};
-	unsigned char dheader[HEADER_SIZE] = {0};  // decrypted header
-	unsigned char * mesg = calloc (MAX_PACKET_SIZE, sizeof(char));
-	unsigned char * serverkey = (unsigned char *) calloc (SERVER_KEY_LEN, SERVER_KEY_LEN * sizeof(char));
-	unsigned char * clientkey = (unsigned char *) calloc (CLIENT_KEY_LEN, CLIENT_KEY_LEN * sizeof(char));
-	PSO_CRYPT * theircipher = calloc (1, sizeof(PSO_CRYPT));
-	PSO_CRYPT * mycipher = calloc (1, sizeof(PSO_CRYPT));
-	
-	//---- Connect to ship ------//
-	
-	// Negotiate with winsock (windows networking) to get winsock data by providing version request
-	netStartup();
-	blocksock = dock();
 	printf ("\n");
-	
-	//---- Start encryption --------//
-	
-	// Receive first message (which should be encryption start packet (p03)
-	printf ("Listening for crypt packet...\n");
-	catchCryptPacket(blocksock, recvbuff, serverkey, clientkey);
-	
-	// Setup encryption
-	pso_crypt_table_init_bb (theircipher, serverkey);
-	pso_crypt_table_init_bb (mycipher, clientkey);
-	
-	// Send packet login packet (p93)
-	printf ("Sending login packet...\n");
-	sendemesg (blocksock, mesg, Packet93, Packet93[PACKET_LEN_LOC], mycipher);
-	
-	// Listen loop
-	unsigned int pkttype;
-	do {
-		printf ("Listening for reply...\n");
-		pkttype = dheader[PACKET_TYPE_LOC];
-		memset (mesg, 0, MAX_PACKET_SIZE);
-		mesg = pollmesg (blocksock, recvbuff);
-		memcpy (header, mesg, HEADER_SIZE);
-		decryptcopy (dheader, header, HEADER_SIZE, theircipher);
-		
-		// Determine the packet's intentions
-		switch (pkttype)
+	int i = 0;
+	int j = 1;
+	printf ("%2.2d: ", j++);
+	while (i<len)
+	{
+		printf ("%2.2X ", in[i]);
+		if (++i % 10 == 0)
 		{
-			case 0x1D:  // ping (send reply back)
-				sendemesg (blocksock, mesg, Packet1D, (int)Packet1D[PACKET_LEN_LOC], mycipher);
-				printf ("ping pong\n");
-				break;
-			default:
-				printf ("Not sure what this is...\n");
-				dumpx (dheader, HEADER_SIZE);
-				break;
+			printf ("\n");
+			printf ("%2.2d: ", j++);
 		}
-	} while (pkttype != 0x05);
-	
-	//---- Start command reading ---//
-	
-	return 0;
+	}
+	printf ("\n");
 }
 
-void sendemesg (SOCKET sock, unsigned char * mesg, const unsigned char * src, int length, PSO_CRYPT * cipher)
+
+void setpackval (unsigned char * packet, int vali, const unsigned char * val, int len)
 {
-	memset (mesg, 0, length*sizeof(char));
-	encryptcopy (mesg, src, length, cipher);
-	sendmesg (sock, mesg, length);
+	int i;
+	for (i=0; i<len; i++)
+		packet[vali+i] = val[i];
 }
 
 void sendmesg (SOCKET sock, unsigned char * mesg, int length)
@@ -125,11 +85,13 @@ void sendmesg (SOCKET sock, unsigned char * mesg, int length)
 		printf ("Message sent.\n");
 }
 
-/*
- * If socket has something to say, it displays it and then exits with 0.
- * It also exists with 0 if it receives a close request.
- * Exits with 1 if an error is encountered, not before printing the error.
- */
+void sendemesg (SOCKET sock, unsigned char * mesg, const unsigned char * src, int length, PSO_CRYPT * cipher)
+{
+	memset (mesg, 0, length*sizeof(char));
+	encryptcopy (mesg, src, length, cipher);
+	sendmesg (sock, mesg, length);
+}
+
 unsigned char * pollmesg (SOCKET sock, unsigned char * buff)
 {
 	int result;
@@ -155,7 +117,7 @@ unsigned char * pollmesg (SOCKET sock, unsigned char * buff)
 	} while (result > 0);
 }
 
-int extractkey (unsigned char * in, unsigned char * key, int keyloc, int keylen)
+int copykey (unsigned char * in, unsigned char * key, int keyloc, int keylen)
 {
 	int i;
 	for (i=0; i<keylen; i++)
@@ -163,56 +125,62 @@ int extractkey (unsigned char * in, unsigned char * key, int keyloc, int keylen)
 	return i;
 }
 
-void catchCryptPacket (SOCKET sock, unsigned char * buff, unsigned char * serverkey, unsigned char * clientkey)
+unsigned char * catchCryptPacket (SERVER * server)
 {	
-	buff = pollmesg (sock, buff);
+	server->key = calloc (SERVER_KEY_LEN, sizeof(char));
+	server->ckey = calloc (CLIENT_KEY_LEN, sizeof(char));
 	
-	if (buff == NULL)
-	{
-		printf ("Connection error while waiting for encryption packet. Aborted.\n");
-		free (buff);
-		exit(CONNECTION_ERROR);
-	}
-	if (buff[0] == 0xC8)  // 200 (size of packet)
+	unsigned char * packet = calloc (MAX_PACKET_SIZE, sizeof(char));
+	packet = pollmesg (server->socket, packet);
+	
+	if (packet[0] == 0xC8)  // 200 (size of packet)
 	{
 		// This is almost certainly it
 		printf ("Caught packet.\nExtracting keys...\n");
-		extractkey (buff, serverkey, SERVER_KEY_INDEX, SERVER_KEY_LEN);
-		extractkey (buff, clientkey, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
-		free (buff);
+		copykey (packet, server->key, SERVER_KEY_INDEX, SERVER_KEY_LEN);
+		copykey (packet, server->ckey, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
+		free (packet);
 		printf ("Finished.\n\n");
+		return server->ckey;
 	}
 	else
 	{
 		printf ("Received wrong packet. Are you sure youre connecting to the right server?\n");
-		free (buff);
 		exit(WRONG_PACKET_ERROR);
+	}
+	if (packet == NULL)
+	{
+		printf ("Connection error while waiting for encryption packet. Aborted.\n");
+		exit(CONNECTION_ERROR);
 	}
 }
 
-SOCKET dock()
+void setupServer (SERVER * server, const unsigned char * name, unsigned char * ipaddr, int port)
 {
-	// Make a socket
-	SOCKET sock = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET)
+	server->socket = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (server->socket == INVALID_SOCKET)
 		printf ("Whoops, fucked up socket: %ld\n", WSAGetLastError());
 	else
 		printf ("Socket created.\n");
 	
-	// Setup block sockaddr to represent the block server
-	struct sockaddr_in bsa;
-	bsa.sin_family = AF_INET;
-	bsa.sin_addr.s_addr = inet_addr (SHIP_URL);
-	bsa.sin_port = htons (BLOCK1_PORT);
+	server->sa.sin_family = AF_INET;
+	server->sa.sin_addr.s_addr = inet_addr (ipaddr);
+	server->sa.sin_port = htons (port);
 	
-	// Try to connect to a ship block
-	int result = connect (sock, (struct sockaddr *) &bsa, sizeof(bsa));
+	if (strlen(name) <= 10)
+	{
+		server->name = calloc (10, sizeof(char));
+		memcpy (server->name, name, 10);
+	}
+}
+
+void dock (SERVER * server)
+{
+	int result = connect (server->socket, (struct sockaddr *) &server->sa, sizeof(struct sockaddr));
 	if (result <0)
 		printf ("Can't connect: %d\n", WSAGetLastError());
 	else
-		printf ("Connection made to a block.\n");
-	
-	return sock;
+		printf ("Connection made.\n");
 }
 
 void netStartup()
@@ -224,23 +192,178 @@ void netStartup()
 		printf ("Could not negotiate with winsock.\n");
 }
 
-void dumpx (unsigned char * in, int len)
+int talk (SERVER * list[SERVER_LIST_SIZE])
 {
-	printf ("\n");
-	int i = 0;
-	int j = 1;
-	printf ("%2.2d: ", j++);
-	while (i<len)
-	{
-		printf ("%2.2X ", in[i]);
-		if (++i % 10 == 0)
-		{
-			printf ("\n");
-			printf ("%2.2d: ", j++);
+	fd_set readlist;
+	int new_sock;
+	int activity;
+	unsigned char * mesg = calloc (MAX_PACKET_SIZE, sizeof(char));
+	unsigned char * recvbuff = calloc (MAX_PACKET_SIZE, sizeof(char));
+	unsigned char header[HEADER_SIZE] = {0};
+	unsigned char dheader[HEADER_SIZE] = {0};  // decrypted header
+	unsigned char * pkttype = &dheader[PACKET_TYPE_LOC];
+	unsigned char * cipher;
+	
+	while (1)
+	{		
+		FD_ZERO (&readlist);
+		int maxrank = 0;
+		int i;
+		
+		for (i=0; i<SERVER_LIST_SIZE; i++)
+		{		
+			if (list[i]->socket > 0)
+				FD_SET (list[i]->socket, &readlist);
+			if (list[i]->socket > maxrank)
+				maxrank = list[i]->socket;
 		}
+		
+		if (maxrank == 0)  // No more connections
+			break;
+		
+		// Wait for activity
+		activity = select (maxrank + 1, &readlist, NULL, NULL, NULL);
+		if (activity == SOCKET_ERROR)
+			printf ("Connection error: %d\n", WSAGetLastError());
+		
+		for (i=0; i<SERVER_LIST_SIZE; i++)
+			if (FD_ISSET (list[i]->socket, &readlist))
+			{
+				printf ("! Message from %s...\n", list[i]->name);
+				
+				mesg = pollmesg (list[i]->socket, recvbuff);
+				memcpy (header, mesg, HEADER_SIZE);
+				decryptcopy (dheader, header, HEADER_SIZE, list[i]->cipher);
+				
+				// Determine the packet's intentions
+				switch (*pkttype)
+				{
+					case 0x1D:  // ping (send reply back)
+						sendemesg (list[i]->socket, mesg, Packet1D, (int) Packet1D[PACKET_LEN_LOC], list[i]->ccipher);
+						printf ("ping pong\n");
+						break;
+					case 0x05:  // disconnect
+						printf ("%s closed the connection.\n", list[i]->name);
+						closesocket (list[i]->socket);
+						break;
+					default:
+						printf ("Not sure what this is...\n");
+						dumpx (dheader, HEADER_SIZE);
+						break;
+				}
+			}
+		
 	}
-	printf ("\n");
 }
+
+int main()
+{
+	CLIENT our;
+	unsigned char * recvbuff = calloc (MAX_PACKET_SIZE, sizeof(char));
+	unsigned char * mesg = calloc (MAX_PACKET_SIZE, sizeof(char));
+	
+	SERVER login;
+	SERVER block;
+	SERVER * list[] = { &login, &block };
+	
+	
+	//---- Prep -----------------//
+	
+	// Login packet (p93)
+	setpackval (Packet93, USERNAME_INDEX, "gatchi", 6);
+	setpackval (Packet93, PASSWORD_INDEX, "davidislol", 10);
+	*(uint32_t *) &Packet93[GUILDCARD_INDEX] = (uint32_t) 42000001;
+	*(uint16_t *) &Packet93[VERSION_INDEX] = (uint16_t) 12513;
+	
+	
+	//---- Connect to login ------//
+	
+	// Negotiate with winsock (windows networking) to get winsock data by providing version request
+	netStartup();
+	printf ("\n");
+	
+	printf ("Connecting to login server...\n");
+	setupServer (&login, "login", LOGIN_URL, LOGIN_PORT);
+	dock (&login);
+	printf ("\n");
+	
+	
+	//---- Get login keys -------//
+	
+	// Receive first message (which should be encryption start packet (p03)
+	printf ("Listening for crypt packet...\n");
+	our.key.login = catchCryptPacket(&login);
+	
+	// Setup encryption
+	login.cipher = malloc (sizeof (PSO_CRYPT));
+	pso_crypt_table_init_bb (login.cipher, login.key);
+	our.cipher.login = malloc (sizeof (PSO_CRYPT));
+	pso_crypt_table_init_bb (our.cipher.login, our.key.login);
+	
+	// Send packet login packet (p93)
+	printf ("Sending login packet to login...\n");
+	sendemesg (login.socket, mesg, Packet93, Packet93[PACKET_LEN_LOC], our.cipher.login);
+	
+	
+	// ---- Connect to block --------//
+	
+	printf ("Connecting to block...\n");
+	setupServer (&block, "block", SHIP_URL, BLOCK1_PORT);
+	dock (&block);
+	printf ("\n");
+	
+	
+	//---- Get block keys ----------//
+	
+	// Receive first message (which should be encryption start packet (p03)
+	printf ("Listening for crypt packet...\n");
+	our.key.block = catchCryptPacket(&block);
+	
+	// Setup encryption
+	block.cipher = malloc (sizeof (PSO_CRYPT));
+	pso_crypt_table_init_bb (block.cipher, block.key);
+	our.cipher.block = malloc (sizeof (PSO_CRYPT));
+	pso_crypt_table_init_bb (our.cipher.block, our.key.block);
+	
+	// Send packet login packet (p93)
+	printf ("Sending login packet to block...\n");
+	sendemesg (block.socket, mesg, Packet93, Packet93[PACKET_LEN_LOC], our.cipher.block);
+	
+	
+	//---- Listen time -------------//
+	
+	login.ccipher = our.cipher.login;
+	block.ccipher = our.cipher.block;
+	talk (list);
+	
+	/* unsigned int pkttype;
+	do {
+		printf ("Listening for reply...\n");
+		pkttype = dheader[PACKET_TYPE_LOC];
+		memset (mesg, 0, MAX_PACKET_SIZE);
+		mesg = pollmesg (logsock, recvbuff);
+		memcpy (header, mesg, HEADER_SIZE);
+		decryptcopy (dheader, header, HEADER_SIZE, theirlcipher);
+		
+		// Determine the packet's intentions
+		switch (pkttype)
+		{
+			case 0x1D:  // ping (send reply back)
+				sendemesg (blocksock, mesg, Packet1D, (int) Packet1D[PACKET_LEN_LOC], mylcipher);
+				printf ("ping pong\n");
+				break;
+			default:
+				printf ("Not sure what this is...\n");
+				dumpx (dheader, HEADER_SIZE);
+				break;
+		}
+	} while (pkttype != 0x05); */
+	
+	//---- Start command reading ---//
+	
+	return 0;
+}
+
 
 // Toggle announce
 // void toggleAnnounce (CLIENT * c)
