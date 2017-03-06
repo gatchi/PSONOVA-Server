@@ -35,6 +35,7 @@
 #define LOGIN_URL    "127.0.0.1"
 #define SHIP_URL     "127.0.0.1"
 #define LOGIN_PORT        12000
+#define CHAR_PORT         12001
 #define SHIP_PORT          5278
 #define BLOCK1_PORT        5279
 
@@ -47,7 +48,7 @@
 #define PACKET_TYPE_LOC       2
 #define PACKET_LEN_LOC        0
 
-#define SERVER_LIST_SIZE      2
+#define SERVER_LIST_SIZE      4
 
 void dumpx (unsigned char * in, int len)
 {
@@ -136,7 +137,7 @@ unsigned char * catchCryptPacket (SERVER * server)
 	if (packet[0] == 0xC8)  // 200 (size of packet)
 	{
 		// This is almost certainly it
-		printf ("Caught packet.\nExtracting keys...\n");
+		printf ("Caught packet for %s.\nExtracting keys...\n", server->name);
 		copykey (packet, server->key, SERVER_KEY_INDEX, SERVER_KEY_LEN);
 		copykey (packet, server->ckey, CLIENT_KEY_INDEX, CLIENT_KEY_LEN);
 		free (packet);
@@ -161,7 +162,7 @@ void setupServer (SERVER * server, const unsigned char * name, unsigned char * i
 	if (server->socket == INVALID_SOCKET)
 		printf ("Whoops, fucked up socket: %ld\n", WSAGetLastError());
 	else
-		printf ("Socket created.\n");
+		printf ("%s socket created.\n", name);
 	
 	server->sa.sin_family = AF_INET;
 	server->sa.sin_addr.s_addr = inet_addr (ipaddr);
@@ -261,10 +262,13 @@ int main()
 	CLIENT our;
 	unsigned char * recvbuff = calloc (MAX_PACKET_SIZE, sizeof(char));
 	unsigned char * mesg = calloc (MAX_PACKET_SIZE, sizeof(char));
+	int i;
 	
 	SERVER login;
+	SERVER character;
+	SERVER ship;
 	SERVER block;
-	SERVER * list[] = { &login, &block };
+	SERVER * list[] = { &login, &character, &ship, &block };
 	
 	
 	//---- Prep -----------------//
@@ -276,64 +280,46 @@ int main()
 	*(uint16_t *) &Packet93[VERSION_INDEX] = (uint16_t) 12513;
 	
 	
-	//---- Connect to login ------//
+	//---- Setup ----------------//
 	
 	// Negotiate with winsock (windows networking) to get winsock data by providing version request
 	netStartup();
 	printf ("\n");
 	
-	printf ("Connecting to login server...\n");
-	setupServer (&login, "login", LOGIN_URL, LOGIN_PORT);
-	dock (&login);
+	setupServer (&login, "LOGIN", LOGIN_URL, LOGIN_PORT);
+	setupServer (&character, "CHAR", LOGIN_URL, CHAR_PORT);
+	setupServer (&ship, "SHIP", SHIP_URL, SHIP_PORT);
+	setupServer (&block, "BLOCK", SHIP_URL, BLOCK1_PORT);
 	printf ("\n");
 	
 	
-	//---- Get login keys -------//
+	//---- Get keys -------------//
 	
 	// Receive first message (which should be encryption start packet (p03)
-	printf ("Listening for crypt packet...\n");
-	our.key.login = catchCryptPacket(&login);
 	
 	// Setup encryption
-	login.cipher = malloc (sizeof (PSO_CRYPT));
-	pso_crypt_table_init_bb (login.cipher, login.key);
-	our.cipher.login = malloc (sizeof (PSO_CRYPT));
-	pso_crypt_table_init_bb (our.cipher.login, our.key.login);
+	for (i=0; i<SERVER_LIST_SIZE; i++)
+	{
+		// TODO: add docking here, as well as conditional undocking (from ship when blocking dock for example)
+		dock (list[i]);
+		printf ("Listening for crypt packet...\n");
+		catchCryptPacket(list[i]);
+		list[i]->cipher = malloc (sizeof (PSO_CRYPT));
+		pso_crypt_table_init_bb (list[i]->cipher, list[i]->key);
+		our.cipher.login = malloc (sizeof (PSO_CRYPT));
+		list[i]->ccipher = our.cipher.login;
+		pso_crypt_table_init_bb (list[i]->ccipher, list[i]->ckey);
 	
-	// Send packet login packet (p93)
-	printf ("Sending login packet to login...\n");
-	sendemesg (login.socket, mesg, Packet93, Packet93[PACKET_LEN_LOC], our.cipher.login);
-	
-	
-	// ---- Connect to block --------//
-	
-	printf ("Connecting to block...\n");
-	setupServer (&block, "block", SHIP_URL, BLOCK1_PORT);
-	dock (&block);
-	printf ("\n");
-	
-	
-	//---- Get block keys ----------//
-	
-	// Receive first message (which should be encryption start packet (p03)
-	printf ("Listening for crypt packet...\n");
-	our.key.block = catchCryptPacket(&block);
-	
-	// Setup encryption
-	block.cipher = malloc (sizeof (PSO_CRYPT));
-	pso_crypt_table_init_bb (block.cipher, block.key);
-	our.cipher.block = malloc (sizeof (PSO_CRYPT));
-	pso_crypt_table_init_bb (our.cipher.block, our.key.block);
-	
-	// Send packet login packet (p93)
-	printf ("Sending login packet to block...\n");
-	sendemesg (block.socket, mesg, Packet93, Packet93[PACKET_LEN_LOC], our.cipher.block);
+		// Send packet login packet (p93)
+		printf ("Sending login packet to %s...\n", list[i]->name);
+		sendemesg (list[i]->socket, mesg, Packet93, Packet93[PACKET_LEN_LOC], list[i]->ccipher);
+	}
 	
 	
 	//---- Listen time -------------//
 	
-	login.ccipher = our.cipher.login;
-	block.ccipher = our.cipher.block;
+	printf ("\n");
+	printf ("Key exchange finished.  Listening for responses....\n");
 	talk (list);
 	
 	/* unsigned int pkttype;
@@ -364,18 +350,3 @@ int main()
 	return 0;
 }
 
-
-// Toggle announce
-// void toggleAnnounce (CLIENT * c)
-// {
-	// if (c->announce != 0)
-	// {
-		// SendB0 ("Announce\ncancelled.", c);
-		// c->announce = 0;
-	// }
-	// else
-	// {
-		// SendB0 ("Announce by\nsending a\nmail.", c);
-		// c->announce = 1;
-	// }
-// }
