@@ -1,5 +1,4 @@
 *.exe
-*.h
 *.txt
 !todo.txt
 *.pkt
