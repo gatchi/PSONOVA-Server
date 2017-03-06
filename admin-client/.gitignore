@@ -1,6 +1,7 @@
 *.exe
 *.h
 *.txt
+!todo.txt
 *.pkt
 spare-funcs.c
 scratch.c

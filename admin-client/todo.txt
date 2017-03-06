@@ -1,0 +1,4 @@
+consider not using pollmesg for talk, too much abstraction
+  (causing conflict errors with pollmesg's closesocket operation and talk()'s closesocket operation)
+functionalty where the client disconnects from a server in a chain when connecting to next in chain
+  (like disconnecting from BLOCK when connecting to SHIP)
