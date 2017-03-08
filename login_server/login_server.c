@@ -2588,7 +2588,8 @@ void ShipProcessPacket (SHIP* ship)
 
 #ifdef NO_SQL
 											memcpy (&ship->user_key[0], &ship_data[ds_found]->rc4key, 128);
-#else
+#endif
+#ifndef NO_SQL
 											memcpy (&ship->user_key[0], myRow[0], 128 ); // 1024-bit key
 											mysql_free_result ( myResult );
 #endif
@@ -5067,9 +5068,9 @@ void LoadDropData()
 						exit   (1);
 					}
 					look_rate = 1;
-					while ( fgets ( &dp[0],  255, fp ) != NULL )
+					while ( fgets ( &dp[0],  255, fp ) != NULL )  // Extract drop rates
 					{
-						if ( dp[0] != 35 ) // not a comment
+						if ( dp[0] != 35 ) // not a comment (#)
 						{
 							if ( look_rate )
 							{
@@ -5108,7 +5109,7 @@ void LoadDropData()
 						exit   (1);
 					}
 					look_rate = 0;
-					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )
+					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )  // Extract them again?
 					{
 						if ( dp[0] != 35 ) // not a comment
 						{
