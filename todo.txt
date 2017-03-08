@@ -1,6 +1,7 @@
 TODO
 =====
-  
+- central control of item drop rates
+- make email optional and account max infinite (or at least tweakable)
 - enable sending of simple mail/announcements from terminal
 - label commands and sends and packets
 - replace libraries with sources with DLLs or something (make DLLs?)
