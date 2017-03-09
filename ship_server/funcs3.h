@@ -3510,6 +3510,15 @@ void Send62 (CLIENT* client)
 							rare_item = rare_lookup >> 8;						// rare item is upper part
 							rare_roll = mt_lrand();								// rare roll is random number
 							//debug ("rare_roll = %u", rare_roll );
+							
+							long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
+							if (result < rare_rate)
+							{
+								rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
+								if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
+							}
+							else rare_rate = result;
+						
 							if  ( ( ( rare_lookup & 0xFF ) != 0 ) && ( ( rare_roll < rare_rate ) || ( l->redbox ) ) )
 							{
 								// Drop a rare item
@@ -3738,6 +3747,15 @@ void Send62 (CLIENT* client)
 								rare_rate = ExpandDropRate ( *rt_table2 );
 								memcpy (&rare_item, &rt_table2[1], 3);
 								rare_roll = mt_lrand();
+								
+								long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
+								if (result < rare_rate)
+								{
+									rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
+									if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
+								}
+								else rare_rate = result;
+								
 								if ( ( rare_roll < rare_rate ) || ( l->redbox == 1 ) )
 								{
 									box_rare = 1;
