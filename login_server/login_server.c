@@ -5062,6 +5062,8 @@ void LoadDropData()  // TODO: re-org this nicer
 					strcat (&id_file[0], &convert_ch[0]);
 					strcat (&id_file[0], ".txt");
 					
+					//----------{          MOB RATES         }----------------------------//
+					
 					ch3 = 0;  // Placeholder for rate table
 					fp = fopen ( &id_file[0], "r" );
 					if (!fp)  // check if file exists, exit if it doesnt
@@ -5073,37 +5075,40 @@ void LoadDropData()  // TODO: re-org this nicer
 					}
 					
 					look_rate = 1;
-					while ( fgets ( &dp[0],  255, fp ) != NULL )  // ??
+					int result;
+					while ( fgets ( &dp[0],  255, fp ) != NULL )  // Mob rates
 					{
 						if ( dp[0] != 35 ) // not a comment (#)
 						{
-							if ( look_rate )  // ??
+							if ( look_rate )  // Line 1, rare occurrence rate
 							{
 								rt_table[ch3++] = (unsigned char) atoi (&dp[0]);
 								look_rate = 0;
 							}
 							else
 							{
-								if ( strlen ( &dp[0] ) < 6 )  // if corrupted, exit
+								if ( strlen ( &dp[0] ) < 6 )  // if corrupted hex num, freak out and exit the whole shebang
 								{
 									printf ("Corrupted drop table \"%s\"", id_file[0] );
 									printf ("Hit [ENTER] to quit...");
 									gets   (&dp[0]);
 									exit   (1);
 								}
-								
-								// else...
 								_strupr ( &dp[0] );  // a->A
-								rt_table[ch3++] = hexToByte ( &dp[0] );  // Load rate 
-								rt_table[ch3++] = hexToByte ( &dp[2] );
-								rt_table[ch3++] = hexToByte ( &dp[4] );
+								rt_table[ch3++] = hexToByte ( &dp[0] );  // Load hex value of item 
+								rt_table[ch3++] = hexToByte ( &dp[2] );  //
+								rt_table[ch3++] = hexToByte ( &dp[4] );  //
 								look_rate = 1;
 							}
 						}
 					}
 					fclose (fp);
-					ch3 = 0x194;
-					memset (&rt_table[ch3], 0xFF, 30);
+					
+					ch3 = 0x194; //??
+					memset (&rt_table[ch3], 0xFF, 30); //??
+					
+					//-----------{        BOX RATES        }------------------------------//
+					
 					// TODO: use str func to replace "mob" with "box"
 					id_file[9]  = 98;
 					id_file[10] = 111;
@@ -5116,8 +5121,9 @@ void LoadDropData()  // TODO: re-org this nicer
 						gets   (&dp[0]);
 						exit   (1);
 					}
+					
 					look_rate = 0;
-					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )  // Box stuff (what is 0x1B2??)
+					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )  // Box rates (what is 0x1B2??)
 					{
 						if ( dp[0] != 35 ) // not a comment (#)
 						{
