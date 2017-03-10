@@ -115,7 +115,6 @@ void load_config_file()
 	}
 	else
 	{
-		//printf ("Else triggered.\n");
 		while (fgets (&config_data[0], 255, fp) != NULL)
 		{
 			if (config_data[0] != 0x23)  // if not a comment
@@ -123,7 +122,7 @@ void load_config_file()
 				// If IP settings, IP Address, or Ship Name
 				if ((config_index == 0x00) || (config_index == 0x04) || (config_index == 0x05))
 				{
-					// Remove newline
+					// Remove newlines and carriage returns
 					ch = strlen (&config_data[0]);
 					if (config_data[ch-1] == 0x0A)
 						config_data[ch--]  = 0x00;
@@ -131,132 +130,140 @@ void load_config_file()
 				}
 				switch (config_index)
 				{
-				case 0x00:
-					// Server IP address
-					{
-						// lel doesnt even check if the whole word is there
-						if ((config_data[0] == 'A') || (config_data[0] == 'a'))
+					case 0x00:
+						// Server IP address
 						{
-							autoIP = 1;
-						}
-						else
-						{
-							convertIPString (&config_data[0], ch+1, 1, &serverIP[0] );
-						}
-					}
-					break;
-				case 0x01:
-					// Server Listen Port
-					serverPort = atoi (&config_data[0]);
-					break;
-				case 0x02:
-					// Number of blocks
-					serverBlocks = atoi (&config_data[0]);
-					if (serverBlocks > 10) 
-					{
-						printf ("You cannot host more than 10 blocks... Adjusted.\n");
-						serverBlocks = 10;
-					}
-					if (serverBlocks == 0)
-					{
-						printf ("You have to host at least ONE block... Adjusted.\n");
-						serverBlocks = 1;
-					}
-					break;
-				case 0x03:
-					// Max Client Connections
-					serverMaxConnections = atoi (&config_data[0]);
-					if ( serverMaxConnections > ( serverBlocks * 180 ) )
-					{
-						printf ("\nYou're attempting to server more connections than the amount of blocks\nyou're hosting allows.\nAdjusted...\n");
-						serverMaxConnections = serverBlocks * 180;
-					}
-					if ( serverMaxConnections > SHIP_COMPILED_MAX_CONNECTIONS )
-					{
-						printf ("This copy of the ship serving software has not been compiled to accept\nmore than %u connections.\nAdjusted...\n", SHIP_COMPILED_MAX_CONNECTIONS);
-						serverMaxConnections = SHIP_COMPILED_MAX_CONNECTIONS;
-					}
-					break;
-				case 0x04:
-					// Login server host name or IP
-					{
-						unsigned p;
-						unsigned alpha;
-						alpha = 0;
-						for (p=0;p<ch;p++)
-							if (((config_data[p] >= 65 ) && (config_data[p] <= 90)) ||
-								((config_data[p] >= 97 ) && (config_data[p] <= 122)))
+							// lel doesnt even check if the whole word is there
+							if ((config_data[0] == 'A') || (config_data[0] == 'a'))
 							{
-								alpha = 1;
-								break;
+								autoIP = 1;
 							}
-						if (alpha)
+							else
+							{
+								convertIPString (&config_data[0], ch+1, 1, &serverIP[0] );
+							}
+						}
+						break;
+					case 0x01:
+						// Server Listen Port
+						serverPort = atoi (&config_data[0]);
+						break;
+					case 0x02:
+						// Number of blocks
+						serverBlocks = atoi (&config_data[0]);
+						if (serverBlocks > 10) 
 						{
-							struct hostent *IP_host;
+							printf ("You cannot host more than 10 blocks... Adjusted.\n");
+							serverBlocks = 10;
+						}
+						if (serverBlocks == 0)
+						{
+							printf ("You have to host at least ONE block... Adjusted.\n");
+							serverBlocks = 1;
+						}
+						break;
+					case 0x03:
+						// Max Client Connections
+						serverMaxConnections = atoi (&config_data[0]);
+						if ( serverMaxConnections > ( serverBlocks * 180 ) )
+						{
+							printf ("\nYou're attempting to server more connections than the amount of blocks\nyou're hosting allows.\nAdjusted...\n");
+							serverMaxConnections = serverBlocks * 180;
+						}
+						if ( serverMaxConnections > SHIP_COMPILED_MAX_CONNECTIONS )
+						{
+							printf ("This copy of the ship serving software has not been compiled to accept\nmore than %u connections.\nAdjusted...\n", SHIP_COMPILED_MAX_CONNECTIONS);
+							serverMaxConnections = SHIP_COMPILED_MAX_CONNECTIONS;
+						}
+						break;
+					case 0x04:
+						// Login server host name or IP
+						{
+							unsigned p;
+							unsigned alpha;
+							alpha = 0;
+							for (p=0;p<ch;p++)
+								if (((config_data[p] >= 65 ) && (config_data[p] <= 90)) ||
+									((config_data[p] >= 97 ) && (config_data[p] <= 122)))
+								{
+									alpha = 1;
+									break;
+								}
+							if (alpha)
+							{
+								struct hostent *IP_host;
 
-							config_data[strlen(&config_data[0])-1] = 0x00;
-							printf ("Resolving %s ...\n", (char*) &config_data[0] );
-							IP_host = gethostbyname (&config_data[0]);
-							if (!IP_host)
-							{
-								printf ("Could not resolve host name.");
-								printf ("Press [ENTER] to quit...");
-								gets(&dp[0]);
-								exit (1);
+								config_data[strlen(&config_data[0])-1] = 0x00;
+								printf ("Resolving %s ...\n", (char*) &config_data[0] );
+								IP_host = gethostbyname (&config_data[0]);
+								if (!IP_host)
+								{
+									printf ("Could not resolve host name.");
+									printf ("Press [ENTER] to quit...");
+									gets(&dp[0]);
+									exit (1);
+								}
+								*(unsigned *) &loginIP[0] = *(unsigned *) IP_host->h_addr;
 							}
-							*(unsigned *) &loginIP[0] = *(unsigned *) IP_host->h_addr;
+							else
+								convertIPString (&config_data[0], ch+1, 1, &loginIP[0] );
 						}
-						else
-							convertIPString (&config_data[0], ch+1, 1, &loginIP[0] );
-					}
-					break;
-				case 0x05:
-					// Ship Name
-					memset (&Ship_Name[0], 0, 255 );
-					memcpy (&Ship_Name[0], &config_data[0], ch+1 );
-					Ship_Name[12] = 0x00;
-					break;
-				case 0x06:
-					// Event
-					shipEvent = (unsigned char) atoi (&config_data[0]);
-					PacketDA[0x04] = shipEvent;
-					break;
-				case 0x07:
-					WEAPON_DROP_RATE = atoi (&config_data[0]);
-					break;
-				case 0x08:
-					ARMOR_DROP_RATE = atoi (&config_data[0]);
-					break;
-				case 0x09:
-					MAG_DROP_RATE = atoi (&config_data[0]);
-					break;
-				case 0x0A:
-					TOOL_DROP_RATE = atoi (&config_data[0]);
-					break;
-				case 0x0B:
-					MESETA_DROP_RATE = atoi (&config_data[0]);
-					break;
-				case 0x0C:
-					EXPERIENCE_RATE = atoi (&config_data[0]);
-					if ( EXPERIENCE_RATE > 99 )
-					{
-						printf ("\nWARNING: You have your experience rate set to a very high number.\n");
-						printf ("As of ship_server.exe version 0.038, you now just use single digits\n");
-						printf ("to represent 100%% increments.  (ex. 1 for 100%, 2 for 200%)\n\n");
-						 ("If you've set the high value of %u%% experience on purpose,\n", EXPERIENCE_RATE * 100 );
-						printf ("press [ENTER] to continue, otherwise press CTRL+C to abort.\n");
-						printf (":");
-						gets   (&dp[0]);
-						printf ("\n\n");
-					}
-					break;
-				case 0x0D:
-					ship_support_extnpc = atoi (&config_data[0]);
-					break;
-				default:
-					break;
+						break;
+					case 0x05:
+						// Ship Name
+						memset (&Ship_Name[0], 0, 255 );
+						memcpy (&Ship_Name[0], &config_data[0], ch+1 );
+						Ship_Name[12] = 0x00;
+						break;
+					case 0x06:
+						// Event
+						shipEvent = (unsigned char) atoi (&config_data[0]);
+						PacketDA[0x04] = shipEvent;
+						break;
+					case 0x07:
+						WEAPON_DROP_RATE = atoi (&config_data[0]);
+						break;
+					case 0x08:
+						ARMOR_DROP_RATE = atoi (&config_data[0]);
+						break;
+					case 0x09:
+						MAG_DROP_RATE = atoi (&config_data[0]);
+						break;
+					case 0x0A:
+						TOOL_DROP_RATE = atoi (&config_data[0]);
+						break;
+					case 0x0B:
+						MESETA_DROP_RATE = atoi (&config_data[0]);
+						break;
+					case 0x0C:  // Rare box multiplier
+						rare_box_mult = atoi (config_data);
+						break;
+					case 0x0D:  // Rare mob multiplier
+						rare_box_mult = atoi (config_data);
+						break;
+					case 0x0E:  // Global rare multiplier
+						global_rare_mult = atoi (config_data);
+						break;
+					case 0x0F:
+						EXPERIENCE_RATE = atoi (&config_data[0]);
+						if ( EXPERIENCE_RATE > 99 )
+						{
+							printf ("\nWARNING: You have your experience rate set to a very high number.\n");
+							printf ("As of ship_server.exe version 0.038, you now just use single digits\n");
+							printf ("to represent 100%% increments.  (ex. 1 for 100%, 2 for 200%)\n\n");
+							 ("If you've set the high value of %u%% experience on purpose,\n", EXPERIENCE_RATE * 100 );
+							printf ("press [ENTER] to continue, otherwise press CTRL+C to abort.\n");
+							printf (":");
+							gets   (&dp[0]);
+							printf ("\n\n");
+						}
+						break;
+					case 0x10:  // NiGHTS skin support
+						ship_support_extnpc = atoi (&config_data[0]);
+						break;
+					default:
+						break;
 				}
-				printf ("Line: %d\n", config_index);
 				config_index++;
 			}
 		}
