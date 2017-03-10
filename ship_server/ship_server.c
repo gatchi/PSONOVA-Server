@@ -38,7 +38,9 @@
  * Automatic shutdown mail when not using quick shutdown
  */
 
-#define SERVER_VERSION "Wine 0.1a"  // Based of of 0.144
+#define SERVER_VERSION "PSONOVA 0.2.1"  // Based of of 0.144
+#define DEBUG 1
+
 #define USEADDR_ANY
 #define LOGON_PORT 3455
 #define TCP_BUFFER_SIZE 64000
@@ -84,6 +86,12 @@
 #define	NEWMAN_FLAG	32  // Bit 6
 #define	MALE_FLAG	64  // Bit 7
 #define	FEMALE_FLAG	128 // Bit 8
+
+// Rare rate multipliers (TODO: put in into .ini and make reload command)
+
+#define GLOBAL_RARE_MULT 1
+#define MOB_RARE_MULT 1
+#define BOX_RARE_MULT 1
 
 #include	<windows.h>
 #include	<stdio.h>

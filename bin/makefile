@@ -5,8 +5,13 @@ INCLUDES = -I../md5/include -I../mysql/include -I../prs
 WINSOCK = -lws2_32
 MYSQL = -L../mysql/lib -llibmysql
 SHIP_DIR = ../ship_server
+HEADERS = $(PATCH_H) $(LOGIN_H) $(SHIP_H)
+PATCH_H = ../patch_server/resource.h
+LOGIN_H = ../login_server/def_structs.h
 SHIP_H = $(SHIP_DIR)/resource.h $(SHIP_DIR)/pso_crypt.h $(SHIP_DIR)/bbtable.h $(SHIP_DIR)/localgms.h $(SHIP_DIR)/prs.cpp $(SHIP_DIR)/def_map.h \
-         $(SHIP_DIR)/def_block.h $(SHIP_DIR)/def_packets.h $(SHIP_DIR)/def_structs.h $(SHIP_DIR)/def_tables.h
+         $(SHIP_DIR)/def_block.h $(SHIP_DIR)/def_packets.h $(SHIP_DIR)/def_structs.h $(SHIP_DIR)/def_tables.h $(FUNC_H)
+FUNC_H = $(SHIP_DIR)/funcs1.h $(SHIP_DIR)/funcs2.h $(SHIP_DIR)/funcs3.h $(SHIP_DIR)/funcs4.h $(SHIP_DIR)/file-funcs.h $(SHIP_DIR)/load-funcs.h \
+         $(SHIP_DIR)/mag-funcs.h $(SHIP_DIR)/string-funcs.h
 
 all: account_add login char_export convert_quest convert_unitxt make_key newtable patch ship
 
@@ -15,10 +20,10 @@ all: account_add login char_export convert_quest convert_unitxt make_key newtabl
 account_add char_export convert_quest: $$@.o md5.o
 	$(CC) -o $@ $< $(MYSQL) md5.o
 
-patch: patch_server.o ../patch_server/resource.h
+patch: patch_server.o $(PATCH_H)
 	$(CC) -o $@ $< $(WINSOCK)
 
-login: login_server.o md5.o ../login_server/def_structs.h
+login: login_server.o md5.o $(LOGIN_H)
 	$(CC) -o $@ $< $(WINSOCK) $(MYSQL) md5.o
 
 ship: mtwist.o ship_server.o $(SHIP_H)
@@ -31,6 +36,15 @@ newtable: mtwist.o newtable.o
 	$(CC) -o $@ $^
 
 convert_unitxt: convert_unitxt.o
+
+patch_server.o: ../$$*/$$*.c $(PATCH_H)
+	$(CC) -c $(INCLUDES) $<
+
+login_server.o: ../$$*/$$*.c $(LOGIN_H)
+	$(CC) -c $(INCLUDES) $<
+
+ship_server.o: ../$$*/$$*.c $(SHIP_H)
+	$(CC) -c $(INCLUDES) $<
 
 %.o: ../$$*/%.c
 	$(CC) -c $(INCLUDES) $<

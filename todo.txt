@@ -1,6 +1,10 @@
 TODO
 =====
 - central control of item drop rates
+  - bump up version number
+  - reload command on ship
+  - document how rare drop rates work
+- restructure code layout again (src its own folder, everything else top level)
 - make email optional and account max infinite (or at least tweakable)
 - enable sending of simple mail/announcements from terminal
 - label commands and sends and packets
