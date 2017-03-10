@@ -3496,29 +3496,20 @@ void Send62 (CLIENT* client)
 							rt_index += ((0x1400 * l->difficulty) + ( client->character.sectionID * 0x200 ));
 							switch (l->episode)
 							{
-								case 0x02:
-									rare_lookup = rt_tables_ep2[rt_index];
-									break;
-								case 0x03:
-									rare_lookup = rt_tables_ep4[rt_index];
-									break;
-								default:
-									rare_lookup = rt_tables_ep1[rt_index];
-									break;
+							case 0x02:
+								rare_lookup = rt_tables_ep2[rt_index];
+								break;
+							case 0x03:
+								rare_lookup = rt_tables_ep4[rt_index];
+								break;
+							default:
+								rare_lookup = rt_tables_ep1[rt_index];
+								break;
 							}
-							rare_rate = ExpandDropRate ( rare_lookup & 0xFF );  // rare rate is expanded lower part
-							rare_item = rare_lookup >> 8;						// rare item is upper part
-							rare_roll = mt_lrand();								// rare roll is random number
+							rare_rate = ExpandDropRate ( rare_lookup & 0xFF );
+							rare_item = rare_lookup >> 8;
+							rare_roll = mt_lrand();
 							//debug ("rare_roll = %u", rare_roll );
-							
-							long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
-							if (result < rare_rate)
-							{
-								rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
-								if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
-							}
-							else rare_rate = result;
-						
 							if  ( ( ( rare_lookup & 0xFF ) != 0 ) && ( ( rare_roll < rare_rate ) || ( l->redbox ) ) )
 							{
 								// Drop a rare item
@@ -3667,15 +3658,15 @@ void Send62 (CLIENT* client)
 					{
 						switch (l->episode)
 						{
-							case 0x02:
-								rt_table = (unsigned char*) &rt_tables_ep2[0];
-								break;
-							case 0x03:
-								rt_table = (unsigned char*) &rt_tables_ep4[0];
-								break;
-							default:
-								rt_table = (unsigned char*) &rt_tables_ep1[0];
-								break;
+						case 0x02:
+							rt_table = (unsigned char*) &rt_tables_ep2[0];
+							break;
+						case 0x03:
+							rt_table = (unsigned char*) &rt_tables_ep4[0];
+							break;
+						default:
+							rt_table = (unsigned char*) &rt_tables_ep1[0];
+							break;
 						}
 						rt_table += ( ( 0x5000 * l->difficulty ) + ( client->character.sectionID * 0x800 ) ) + 0x194;
 						rt_table2 = rt_table + 0x1E;
@@ -3683,61 +3674,61 @@ void Send62 (CLIENT* client)
 
 						switch ( l->episode )
 						{
-							case 0x01:
-								switch ( l->floor[client->clientID ] )
-								{
-									case 11:
-										// dragon
-										floor_check = 3;
-										break;
-									case 12:
-										// de rol
-										floor_check = 6;
-										break;
-									case 13:
-										// vol opt
-										floor_check = 8;
-										break;
-									case 14:
-										// falz
-										floor_check = 10;
-										break;
-									default:
-										floor_check = l->floor[client->clientID ];
-										break;
-								}	
+						case 0x01:
+							switch ( l->floor[client->clientID ] )
+							{
+							case 11:
+								// dragon
+								floor_check = 3;
 								break;
-							case 0x02:
-								switch ( l->floor[client->clientID ] )
-								{
-									case 14:
-										// barba ray
-										floor_check = 3;
-										break;
-									case 15:
-										// gol dragon
-										floor_check = 6;
-										break;
-									case 12:
-										// gal gryphon
-										floor_check = 9;
-										break;
-									case 13:
-										// olga flow
-										floor_check = 10;
-										break;
-								default:
-									// could be tower
-									if ( l->floor[client->clientID] <= 11 )
-										floor_check = ep2_rtremap[(l->floor[client->clientID] * 2)+1];
-									else
-										floor_check = 10;
-									break;
-								}	
+							case 12:
+								// de rol
+								floor_check = 6;
 								break;
-							case 0x03:
+							case 13:
+								// vol opt
+								floor_check = 8;
+								break;
+							case 14:
+								// falz
+								floor_check = 10;
+								break;
+							default:
 								floor_check = l->floor[client->clientID ];
 								break;
+							}	
+							break;
+						case 0x02:
+							switch ( l->floor[client->clientID ] )
+							{
+							case 14:
+								// barba ray
+								floor_check = 3;
+								break;
+							case 15:
+								// gol dragon
+								floor_check = 6;
+								break;
+							case 12:
+								// gal gryphon
+								floor_check = 9;
+								break;
+							case 13:
+								// olga flow
+								floor_check = 10;
+								break;
+							default:
+								// could be tower
+								if ( l->floor[client->clientID] <= 11 )
+									floor_check = ep2_rtremap[(l->floor[client->clientID] * 2)+1];
+								else
+									floor_check = 10;
+								break;
+							}	
+							break;
+						case 0x03:
+							floor_check = l->floor[client->clientID ];
+							break;
 						}
 
 						for (ch=0;ch<30;ch++)
@@ -3747,15 +3738,6 @@ void Send62 (CLIENT* client)
 								rare_rate = ExpandDropRate ( *rt_table2 );
 								memcpy (&rare_item, &rt_table2[1], 3);
 								rare_roll = mt_lrand();
-								
-								long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
-								if (result < rare_rate)
-								{
-									rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
-									if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
-								}
-								else rare_rate = result;
-								
 								if ( ( rare_roll < rare_rate ) || ( l->redbox == 1 ) )
 								{
 									box_rare = 1;

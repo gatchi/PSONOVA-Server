@@ -5005,7 +5005,7 @@ void LoadQuestAllow ()
 }
 
 
-void LoadDropData()  // TODO: re-org this nicer
+void LoadDropData()
 {	
 	unsigned ch,ch2,ch3,d;
 	unsigned char* rt_table;
@@ -5039,77 +5039,64 @@ void LoadDropData()  // TODO: re-org this nicer
 				// Each section ID
 				for (ch2=0;ch2<10;ch2++)
 				{
-					// TODO: make this section like the ones below
 					id_file[0] = 0;
 					switch (ch)
 					{
-						case 0x01:
-							strcat (&id_file[0], "drop\\ep1_mob_");
-							break;
-						case 0x02:
-							strcat (&id_file[0], "drop\\ep2_mob_");
-							break;
-						case 0x04:
-							strcat (&id_file[0], "drop\\ep4_mob_");
-							break;
+					case 0x01:
+						strcat (&id_file[0], "drop\\ep1_mob_");
+						break;
+					case 0x02:
+						strcat (&id_file[0], "drop\\ep2_mob_");
+						break;
+					case 0x04:
+						strcat (&id_file[0], "drop\\ep4_mob_");
+						break;
 					}
-					
-					sprintf (convert_ch, "%d", d);  // difficulty
+					_itoa (d, &convert_ch[0], 10);
 					strcat (&id_file[0], &convert_ch[0]);
 					strcat (&id_file[0], "_");
-					
-					sprintf (convert_ch, "%d", ch2);  // section ID
+					_itoa (ch2, &convert_ch[0], 10);
 					strcat (&id_file[0], &convert_ch[0]);
 					strcat (&id_file[0], ".txt");
-					
-					//----------{          MOB RATES         }----------------------------//
-					
-					ch3 = 0;  // Placeholder for rate table
+					ch3 = 0;
 					fp = fopen ( &id_file[0], "r" );
-					if (!fp)  // check if file exists, exit if it doesnt
+					if (!fp)
 					{
 						printf ("Drop table not found \"%s\"", id_file[0] );
 						printf ("Hit [ENTER] to quit...");
 						gets   (&dp[0]);
 						exit   (1);
 					}
-					
 					look_rate = 1;
-					int result;
-					while ( fgets ( &dp[0],  255, fp ) != NULL )  // Mob rates
+					while ( fgets ( &dp[0],  255, fp ) != NULL )  // Extract drop rates
 					{
 						if ( dp[0] != 35 ) // not a comment (#)
 						{
-							if ( look_rate )  // Line 1, rare occurrence rate
+							if ( look_rate )
 							{
 								rt_table[ch3++] = (unsigned char) atoi (&dp[0]);
 								look_rate = 0;
 							}
 							else
 							{
-								if ( strlen ( &dp[0] ) < 6 )  // if corrupted hex num, freak out and exit the whole shebang
+								if ( strlen ( &dp[0] ) < 6 )
 								{
 									printf ("Corrupted drop table \"%s\"", id_file[0] );
 									printf ("Hit [ENTER] to quit...");
 									gets   (&dp[0]);
 									exit   (1);
 								}
-								_strupr ( &dp[0] );  // a->A
-								rt_table[ch3++] = hexToByte ( &dp[0] );  // Load hex value of item 
-								rt_table[ch3++] = hexToByte ( &dp[2] );  //
-								rt_table[ch3++] = hexToByte ( &dp[4] );  //
+								_strupr ( &dp[0] );
+								rt_table[ch3++] = hexToByte ( &dp[0] );
+								rt_table[ch3++] = hexToByte ( &dp[2] );
+								rt_table[ch3++] = hexToByte ( &dp[4] );
 								look_rate = 1;
 							}
 						}
 					}
 					fclose (fp);
-					
-					ch3 = 0x194; //??
-					memset (&rt_table[ch3], 0xFF, 30); //??
-					
-					//-----------{        BOX RATES        }------------------------------//
-					
-					// TODO: use str func to replace "mob" with "box"
+					ch3 = 0x194;
+					memset (&rt_table[ch3], 0xFF, 30);
 					id_file[9]  = 98;
 					id_file[10] = 111;
 					id_file[11] = 120;
@@ -5121,37 +5108,36 @@ void LoadDropData()  // TODO: re-org this nicer
 						gets   (&dp[0]);
 						exit   (1);
 					}
-					
 					look_rate = 0;
-					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )  // Box rates (what is 0x1B2??)
+					while ( ( fgets ( &dp[0],  255, fp ) != NULL ) && ( ch3 < 0x1B2 ) )  // Extract them again?
 					{
-						if ( dp[0] != 35 ) // not a comment (#)
+						if ( dp[0] != 35 ) // not a comment
 						{
 							switch ( look_rate )
 							{
-								case 0x00:  // Line 1, area
-									rt_table[ch3] = (unsigned char) atoi (&dp[0]);
-									look_rate = 1;
-									break;
-								case 0x01:  // Line 2, rare occurence rate
-									rt_table[0x1B2 + ((ch3-0x194)*4)] = (unsigned char) atoi (&dp[0]);
-									look_rate = 2;
-									break;
-								case 0x02:  // Line 3, what the rare drop is
-									if ( strlen ( &dp[0] ) < 6 )
-									{  // If item hex value less than 6 chars, freak out and exit
-										printf ("Corrupted drop table \"%s\"", id_file[0] );
-										printf ("Hit [ENTER] to quit...");
-										gets   (&dp[0]);
-										exit   (1);
-									}
-									_strupr ( &dp[0] );  // make uppercase
-									rt_table[0x1B3 + ((ch3-0x194)*4)] = hexToByte ( &dp[0] );  // put in the hex code
-									rt_table[0x1B4 + ((ch3-0x194)*4)] = hexToByte ( &dp[2] );  // 
-									rt_table[0x1B5 + ((ch3-0x194)*4)] = hexToByte ( &dp[4] );  // 
-									look_rate = 0;
-									ch3++;
-									break;
+							case 0x00:
+								rt_table[ch3] = (unsigned char) atoi (&dp[0]);
+								look_rate = 1;
+								break;
+							case 0x01:
+								rt_table[0x1B2 + ((ch3-0x194)*4)] = (unsigned char) atoi (&dp[0]);
+								look_rate = 2;
+								break;
+							case 0x02:
+								if ( strlen ( &dp[0] ) < 6 )
+								{
+									printf ("Corrupted drop table \"%s\"", id_file[0] );
+									printf ("Hit [ENTER] to quit...");
+									gets   (&dp[0]);
+									exit   (1);
+								}
+								_strupr ( &dp[0] );
+								rt_table[0x1B3 + ((ch3-0x194)*4)] = hexToByte ( &dp[0] );
+								rt_table[0x1B4 + ((ch3-0x194)*4)] = hexToByte ( &dp[2] );
+								rt_table[0x1B5 + ((ch3-0x194)*4)] = hexToByte ( &dp[4] );
+								look_rate = 0;
+								ch3++;
+								break;
 							}
 						}
 					}
