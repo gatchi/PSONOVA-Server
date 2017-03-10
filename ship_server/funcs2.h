@@ -2041,57 +2041,10 @@ void LogonProcessPacket (SERVER* ship)
 			compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x04 );
 			break;
 		case 0x10:
-			// Monster appearance rates
+			// Monster appearance rates (disabled)
 			printf ("\nReceived rare monster appearance rates from server...\n");
-			for (ch=0;ch<8;ch++)
-			{
-				mob_rate = *(unsigned *) &ship->decryptbuf[0x06 + (ch * 4)];
-				mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
-	/*
-				times_won = 0;
-				for (ch2=0;ch2<1000000;ch2++)
-				{
-					if (mt_lrand() < mob_calc)
-						times_won++;
-				}
-	*/
-				switch (ch)
-				{
-					case 0x00:
-						printf ("Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						hildebear_rate = (unsigned) mob_calc;
-						break;
-					case 0x01:
-						printf ("Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						rappy_rate = (unsigned) mob_calc;
-						break;
-					case 0x02:
-						printf ("Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						lily_rate = (unsigned) mob_calc;
-						break;
-					case 0x03:
-						printf ("Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						slime_rate = (unsigned) mob_calc;
-						break;
-					case 0x04:
-						printf ("Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						merissa_rate = (unsigned) mob_calc;
-						break;
-					case 0x05:
-						printf ("Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						pazuzu_rate = (unsigned) mob_calc;
-						break;
-					case 0x06:
-						printf ("Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						dorphon_rate = (unsigned) mob_calc;
-						break;
-					case 0x07:
-						printf ("Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-						kondrieu_rate = (unsigned) mob_calc;
-						break;
-				}
-				//debug ("Actual rate: %3f%%\n", ((float) times_won / 1000000) * 100);
-			}
+			printf ("Already have these. Discarded.\n");
+			
 			printf ("\nNow ready to serve players...\n");
 			logon_ready = 1;
 			break;

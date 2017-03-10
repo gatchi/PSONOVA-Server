@@ -38,7 +38,7 @@
  * Automatic shutdown mail when not using quick shutdown
  */
 
-#define SERVER_VERSION "PSONOVA 0.2.1"  // Based of of Teth 0.144
+#define SERVER_VERSION "PSONOVA 0.3"  // Based of of Teth 0.144
 #define DEBUG 1
 
 #define USEADDR_ANY
@@ -124,7 +124,8 @@ unsigned global_rare_mult = 1;
 
 // Random drop rates
 
-unsigned 	rare_box_mult = 1;
+unsigned 	rare_box_mult;
+unsigned	rare_mob_drop_mult;
 unsigned 	WEAPON_DROP_RATE,
 			ARMOR_DROP_RATE,
 			MAG_DROP_RATE,
@@ -135,7 +136,7 @@ unsigned common_rates[5] = { 0 };
 
 // Rare monster appearance rates
 
-unsigned	rare_mob_mult = 1;
+unsigned	rare_mob_mult;
 unsigned	hildebear_rate, 
 			rappy_rate,
 			lily_rate,
@@ -942,7 +943,7 @@ int main()
 	// Initialize connection to winsock
 	WSAStartup(MAKEWORD(1,1), &winsock_data);
 	
-	printf ("Loading the configuration from ship.ini ... ");
+	// Load config file
 #ifdef LOG_60
 	// Start debugging
 	debugfile = fopen ("60packets.txt", "a");
@@ -956,8 +957,8 @@ int main()
 #endif
 	mt_goodseed();
 	load_config_file();
-	printf ("OK!\n\n");
-	printf ("Loading language file...\n");
+	
+	printf ("\nLoading language file...\n");
 	load_language_file();
 	printf ("OK!\n\n");
 	

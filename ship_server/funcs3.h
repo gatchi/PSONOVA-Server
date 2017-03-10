@@ -3511,7 +3511,7 @@ void Send62 (CLIENT* client)
 							rare_roll = mt_lrand();								// rare roll is random number
 							//debug ("rare_roll = %u", rare_roll );
 							
-							long result = rare_rate * global_rare_mult * rare_mob_mult;
+							long result = rare_rate * global_rare_mult * rare_mob_drop_mult;
 							if (result < rare_rate)
 							{
 								rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)

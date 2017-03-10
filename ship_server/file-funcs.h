@@ -97,9 +97,13 @@ void load_language_file()
  */
 void load_config_file()
 {
+	printf ("Loading config file...\n");
 	int config_index = 0;
 	char config_data[255];
 	unsigned ch = 0;
+	
+	unsigned mob_rate;
+	long long mob_calc;
 
 	FILE* fp;
 
@@ -113,7 +117,7 @@ void load_config_file()
 		gets(&dp[0]);
 		exit (1);
 	}
-	else
+	else  // File exists
 	{
 		while (fgets (&config_data[0], 255, fp) != NULL)
 		{
@@ -128,7 +132,7 @@ void load_config_file()
 						config_data[ch--]  = 0x00;
 					config_data[ch] = 0;
 				}
-				switch (config_index)
+				switch (config_index)  // Parse the lines
 				{
 					case 0x00:
 						// Server IP address
@@ -220,6 +224,7 @@ void load_config_file()
 						shipEvent = (unsigned char) atoi (&config_data[0]);
 						PacketDA[0x04] = shipEvent;
 						break;
+					// Item drop rates
 					case 0x07:
 						WEAPON_DROP_RATE = atoi (&config_data[0]);
 						break;
@@ -235,19 +240,81 @@ void load_config_file()
 					case 0x0B:
 						MESETA_DROP_RATE = atoi (&config_data[0]);
 						break;
-					case 0x0C:  // Rare box multiplier
+					case 0x0C:  // Rare box drop multiplier
 						rare_box_mult = atoi (config_data);
-						printf ("Rare box drop multiplier set to %d\n", rare_box_mult);
+						printf (" Rare box drop multiplier set to %d\n", rare_box_mult);
 						break;
-					case 0x0D:  // Rare mob multiplier
+					case 0x0D:  // Rare mob drop multiplier
 						rare_mob_mult = atoi (config_data);
-						printf ("Rare mob drop multiplier set to %d\n", rare_mob_mult);
+						printf (" Rare mob drop multiplier set to %d\n", rare_mob_drop_mult);
 						break;
-					case 0x0E:  // Global rare multiplier
+					case 0x0E:  // Global rare drop multiplier
 						global_rare_mult = atoi (config_data);
-						printf ("Global rare drop multiplier set to %d\n", global_rare_mult);
+						printf (" Global rare drop multiplier set to %d\n", global_rare_mult);
 						break;
+					// Rare mob rates
 					case 0x0F:
+						// Multiplier for rare mob appearances
+						rare_mob_mult = atoi (config_data);
+						printf (" Global rare mob multiplier set to %d\n", rare_mob_mult);
+						break;
+					case 0x10:
+						// Hildebear rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						hildebear_rate = (unsigned) mob_calc;
+						break;
+					case 0x11:
+						// Rappy rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						rappy_rate = (unsigned) mob_calc;
+						break;
+					case 0x12:
+						// Lily rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						lily_rate = (unsigned) mob_calc;
+						break;
+					case 0x13:
+						// Slime rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						slime_rate = (unsigned) mob_calc;
+						break;
+					case 0x14:
+						// Merissa rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						merissa_rate = (unsigned) mob_calc;
+						break;
+					case 0x15:
+						// Pazuzu rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						pazuzu_rate = (unsigned) mob_calc;
+						break;
+					case 0x16:
+						// Dorphon Eclair rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						dorphon_rate = (unsigned) mob_calc;
+						break;
+					case 0x17:
+						// Kondrieu rate (last mob rate)
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						kondrieu_rate = (unsigned) mob_calc;
+						break;
+					case 0x18:
 						EXPERIENCE_RATE = atoi (&config_data[0]);
 						if ( EXPERIENCE_RATE > 99 )
 						{
@@ -261,7 +328,7 @@ void load_config_file()
 							printf ("\n\n");
 						}
 						break;
-					case 0x10:  // NiGHTS skin support
+					case 0x19:  // NiGHTS skin support
 						ship_support_extnpc = atoi (&config_data[0]);
 						break;
 					default:
@@ -287,4 +354,5 @@ void load_config_file()
 	common_rates[3] = 100000 / TOOL_DROP_RATE;
 	common_rates[4] = 100000 / MESETA_DROP_RATE;
 	load_mask_file();
+	printf ("...finished.\n");
 }
