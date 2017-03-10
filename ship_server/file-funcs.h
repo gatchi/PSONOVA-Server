@@ -236,13 +236,16 @@ void load_config_file()
 						MESETA_DROP_RATE = atoi (&config_data[0]);
 						break;
 					case 0x0C:  // Rare box multiplier
-						rare_mob_mult = atoi (config_data);
+						rare_box_mult = atoi (config_data);
+						printf ("Rare box drop multiplier set to %d\n", rare_box_mult);
 						break;
 					case 0x0D:  // Rare mob multiplier
-						rare_box_mult = atoi (config_data);
+						rare_mob_mult = atoi (config_data);
+						printf ("Rare mob drop multiplier set to %d\n", rare_mob_mult);
 						break;
 					case 0x0E:  // Global rare multiplier
 						global_rare_mult = atoi (config_data);
+						printf ("Global rare drop multiplier set to %d\n", global_rare_mult);
 						break;
 					case 0x0F:
 						EXPERIENCE_RATE = atoi (&config_data[0]);

@@ -696,6 +696,12 @@ void Send06 (CLIENT* client)
 				SendB0 ("Local GM file reloaded.", client);
 				readLocalGMFile();
 			}
+			
+			if ( (!strcmp ( myCommand, "reloadconfig" )) && ((client->isgm) || (playerHasRights(client->guildcard, 13))) )
+			{
+				load_config_file();
+				SendB0 ("Ship config file reloaded.", client);
+			}
 
 			if ( (!strcmp ( myCommand, "updatemasks" )) && ((client->isgm) || (playerHasRights(client->guildcard, 12))) )
 			{
