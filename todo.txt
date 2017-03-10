@@ -2,7 +2,7 @@ TODO
 =====
 - central control of item drop rates
   - bump up version number
-  - reload command on ship
+    - version number consistency
   - document how rare drop rates work
 - restructure code layout again (src its own folder, everything else top level)
 - make email optional and account max infinite (or at least tweakable)
