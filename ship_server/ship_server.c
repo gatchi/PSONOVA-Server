@@ -38,7 +38,9 @@
  * Automatic shutdown mail when not using quick shutdown
  */
 
-#define SERVER_VERSION "Wine 0.1a"  // Based of of 0.144
+#define SERVER_VERSION "PSONOVA 0.2.1"  // Based of of 0.144
+#define DEBUG 1
+
 #define USEADDR_ANY
 #define LOGON_PORT 3455
 #define TCP_BUFFER_SIZE 64000
@@ -118,19 +120,22 @@ struct timeval select_timeout = {
 };
 
 FILE* debugfile;
+unsigned global_rare_mult = 1;
 
 // Random drop rates
 
-unsigned WEAPON_DROP_RATE,
-ARMOR_DROP_RATE,
-MAG_DROP_RATE,
-TOOL_DROP_RATE,
-MESETA_DROP_RATE,
-EXPERIENCE_RATE;
+unsigned 	rare_box_mult = 1;
+unsigned 	WEAPON_DROP_RATE,
+			ARMOR_DROP_RATE,
+			MAG_DROP_RATE,
+			TOOL_DROP_RATE,
+			MESETA_DROP_RATE,
+			EXPERIENCE_RATE;
 unsigned common_rates[5] = { 0 };
 
 // Rare monster appearance rates
 
+unsigned	rare_mob_mult = 1;
 unsigned	hildebear_rate, 
 			rappy_rate,
 			lily_rate,
@@ -1008,6 +1013,11 @@ int main()
 	printf ("Tool drop rate: %03f%%\n", (float) TOOL_DROP_RATE / 1000);
 	printf ("Meseta drop rate: %03f%%\n", (float) MESETA_DROP_RATE / 1000);
 	printf ("Experience rate: %u%%\n\n", EXPERIENCE_RATE * 100);
+	
+	printf ("\nRare drop multipliers...\n");
+	printf ("Rare mob drop multiplier: %d\n", rare_mob_mult);
+	printf ("Rare box drop multiplier: %d\n", rare_box_mult);
+	printf ("Global rare drop multiplier: %d\n\n", global_rare_mult);
 	
 	ch = 0;
 	while (ch < 100000)
