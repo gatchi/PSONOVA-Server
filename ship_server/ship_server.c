@@ -38,7 +38,7 @@
  * Automatic shutdown mail when not using quick shutdown
  */
 
-#define SERVER_VERSION "PSONOVA 0.2.1"  // Based of of 0.144
+#define SERVER_VERSION "PSONOVA 0.2.1"  // Based of of Teth 0.144
 #define DEBUG 1
 
 #define USEADDR_ANY

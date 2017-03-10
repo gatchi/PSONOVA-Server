@@ -1146,827 +1146,827 @@ void LogonProcessPacket (SERVER* ship)
 	unsigned mob_rate;
 	long long mob_calc;
 	
-	switch (ship->decryptbuf[0x04])
+	switch (ship->decryptbuf[0x04])  // Check message number
 	{
 		case 0x00:
-		// Server has sent it's welcome packet.  Start encryption and send ship info...
-		memcpy (&ship->user_key[0], &RC4publicKey[0], 32);
-		ch2 = 0;
-		for (ch=0x1C;ch<0x5C;ch+=2)
-		{
-			ship->key_change [ch2+(ship->decryptbuf[ch] % 4)] = ship->decryptbuf[ch+1];
-			ch2 += 4;
-		}
-		prepare_key(&ship->user_key[0], 32, &ship->cs_key);
-		prepare_key(&ship->user_key[0], 32, &ship->sc_key);
-		ship->crypt_on = 1;
-		memcpy (&ship->encryptbuf[0x00], &ship->decryptbuf[0x04], 0x28);
-		memcpy (&ship->encryptbuf[0x00], &ShipPacket00[0x00], 0x10); // Yep! :)
-		ship->encryptbuf[0x00] = 1;
-		memcpy (&ship->encryptbuf[0x28], &Ship_Name[0], 12 );
-		*(unsigned *) &ship->encryptbuf[0x34] = serverNumConnections;
-		*(unsigned *) &ship->encryptbuf[0x38] = *(unsigned *) &serverIP[0];
-		*(unsigned short*) &ship->encryptbuf[0x3C] = (unsigned short) serverPort;
-		*(unsigned *) &ship->encryptbuf[0x3E] = shop_checksum;
-		*(unsigned *) &ship->encryptbuf[0x42] = ship_index;
-		memcpy (&ship->encryptbuf[0x46], &ship_key[0], 32);
-		compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x66 );
-		break;
+			// Server has sent it's welcome packet.  Start encryption and send ship info...
+			memcpy (&ship->user_key[0], &RC4publicKey[0], 32);
+			ch2 = 0;
+			for (ch=0x1C;ch<0x5C;ch+=2)
+			{
+				ship->key_change [ch2+(ship->decryptbuf[ch] % 4)] = ship->decryptbuf[ch+1];
+				ch2 += 4;
+			}
+			prepare_key(&ship->user_key[0], 32, &ship->cs_key);
+			prepare_key(&ship->user_key[0], 32, &ship->sc_key);
+			ship->crypt_on = 1;
+			memcpy (&ship->encryptbuf[0x00], &ship->decryptbuf[0x04], 0x28);
+			memcpy (&ship->encryptbuf[0x00], &ShipPacket00[0x00], 0x10); // Yep! :)
+			ship->encryptbuf[0x00] = 1;
+			memcpy (&ship->encryptbuf[0x28], &Ship_Name[0], 12 );
+			*(unsigned *) &ship->encryptbuf[0x34] = serverNumConnections;
+			*(unsigned *) &ship->encryptbuf[0x38] = *(unsigned *) &serverIP[0];
+			*(unsigned short*) &ship->encryptbuf[0x3C] = (unsigned short) serverPort;
+			*(unsigned *) &ship->encryptbuf[0x3E] = shop_checksum;
+			*(unsigned *) &ship->encryptbuf[0x42] = ship_index;
+			memcpy (&ship->encryptbuf[0x46], &ship_key[0], 32);
+			compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x66 );
+			break;
 		case 0x02:
-		// Server's result of our authentication packet.
-		if (ship->decryptbuf[0x05] != 0x01)
-		{
-			switch (ship->decryptbuf[0x05])
+			// Server's result of our authentication packet.
+			if (ship->decryptbuf[0x05] != 0x01)
 			{
-				case 0x00:
-				printf ("This ship's version is incompatible with the login server.\n");
-				printf ("Press [ENTER] to quit...");
-				reveal_window;
-				gets (&dp[0]);
-				exit (1);
-				break;
-				case 0x02:
-				printf ("This ship's IP address is already registered with the logon server.\n");
-				printf ("The IP address cannot be registered twice.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
-				reveal_window;
-				break;
-				case 0x03:
-				printf ("This ship did not pass the connection test the login server ran on it.\n");
-				printf ("Please be sure the IP address specified in ship.ini is correct, your\n");
-				printf ("firewall has ship_serv.exe on allow.  If behind a router, please be\n");
-				printf ("sure your ports are forwarded.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
-				reveal_window;
-				break;
-				case 0x04:
-				printf ("Please do not modify any data not instructed to when connecting to this\n");
-				printf ("login server...\n");
-				printf ("Press [ENTER] to quit...");
-				reveal_window;
-				gets (&dp[0]);
-				exit (1);
-				break;
-				case 0x05:
-				printf ("Your ship_key.bin file seems to be invalid.\n");
-				printf ("Press [ENTER] to quit...");
-				reveal_window;
-				gets (&dp[0]);
-				exit (1);
-				break;
-				case 0x06:
-				printf ("Your ship key appears to already be in use!\n");
-				printf ("Press [ENTER] to quit...");
-				reveal_window;
-				gets (&dp[0]);
-				exit (1);
-				break;
-			}
-			initialize_logon();
-		}
-		else
-		{
-			serverID = *(unsigned *) &ship->decryptbuf[0x06];
-			if (serverIP[0] == 0x00)
-			{
-				*(unsigned *) &serverIP[0] = *(unsigned *) &ship->decryptbuf[0x0A];
-				printf ("Updated IP address to %u.%u.%u.%u\n", serverIP[0], serverIP[1], serverIP[2], serverIP[3]);
-			}
-			serverID++;
-			if (serverID != 0xFFFFFFFF)
-			{
-				printf ("Ship has successfully registered with the login server!!! Ship ID: %u\n", serverID );
-				printf ("Constructing Block List packet...\n\n");
-				ConstructBlockPacket();
-				printf ("Load quest allowance...\n");
-				quest_numallows = *(unsigned *) &ship->decryptbuf[0x0E];
-				if ( quest_allow )
-					free ( quest_allow );
-				quest_allow = malloc ( quest_numallows * 4  );
-				memcpy ( quest_allow, &ship->decryptbuf[0x12], quest_numallows * 4 );
-				printf ("Quest allowance item count: %u\n\n", quest_numallows );
-				normalName = *(unsigned *) &ship->decryptbuf[0x12 + ( quest_numallows * 4 )];
-				localName = *(unsigned *) &ship->decryptbuf[0x16 + ( quest_numallows * 4 )];
-				globalName = *(unsigned *) &ship->decryptbuf[0x1A + ( quest_numallows * 4 )];
-				memcpy (&ship->user_key[0], &ship_key[0], 128 ); // 1024-bit key
-				
-				// Change keys
-				
-				for (ch2=0;ch2<128;ch2++)
-					if (ship->key_change[ch2] != -1)
-						ship->user_key[ch2] = (unsigned char) ship->key_change[ch2]; // update the key
-					
-				prepare_key(&ship->user_key[0], sizeof(ship->user_key), &ship->cs_key);
-				prepare_key(&ship->user_key[0], sizeof(ship->user_key), &ship->sc_key);
-				memset ( &ship->encryptbuf[0x00], 0, 8 );
-				ship->encryptbuf[0x00] = 0x0F;
-				ship->encryptbuf[0x01] = 0x00;
-				if (global_rare_mult > 1) printf ("Custom global rare drop rate set: %d\n", global_rare_mult);
-				printf ( "Requesting drop charts from server...\n");
-				compressShipPacket ( ship, &ship->encryptbuf[0x00], 4 );
+				switch (ship->decryptbuf[0x05])
+				{
+					case 0x00:
+					printf ("This ship's version is incompatible with the login server.\n");
+					printf ("Press [ENTER] to quit...");
+					reveal_window;
+					gets (&dp[0]);
+					exit (1);
+					break;
+					case 0x02:
+					printf ("This ship's IP address is already registered with the logon server.\n");
+					printf ("The IP address cannot be registered twice.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
+					reveal_window;
+					break;
+					case 0x03:
+					printf ("This ship did not pass the connection test the login server ran on it.\n");
+					printf ("Please be sure the IP address specified in ship.ini is correct, your\n");
+					printf ("firewall has ship_serv.exe on allow.  If behind a router, please be\n");
+					printf ("sure your ports are forwarded.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
+					reveal_window;
+					break;
+					case 0x04:
+					printf ("Please do not modify any data not instructed to when connecting to this\n");
+					printf ("login server...\n");
+					printf ("Press [ENTER] to quit...");
+					reveal_window;
+					gets (&dp[0]);
+					exit (1);
+					break;
+					case 0x05:
+					printf ("Your ship_key.bin file seems to be invalid.\n");
+					printf ("Press [ENTER] to quit...");
+					reveal_window;
+					gets (&dp[0]);
+					exit (1);
+					break;
+					case 0x06:
+					printf ("Your ship key appears to already be in use!\n");
+					printf ("Press [ENTER] to quit...");
+					reveal_window;
+					gets (&dp[0]);
+					exit (1);
+					break;
+				}
+				initialize_logon();
 			}
 			else
 			{
-				printf ("The ship has failed authentication to the logon server.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
-				initialize_logon();
-			}
-		}
-		break;
-		case 0x03:
-		// Reserved
-		break;
-		case 0x04:
-		switch (ship->decryptbuf[0x05])
-		{
-			case 0x01:
-			{
-				// Receive and store full player data here.
-				//
-				CLIENT* client;
-				unsigned guildcard,ch,ch2,eq_weapon,eq_armor,eq_shield,eq_mag;
-				int sockfd;
-				unsigned short baseATP, baseMST, baseEVP, baseHP, baseDFP, baseATA;
-				unsigned char* cd;
-				
-				guildcard = *(unsigned *) &ship->decryptbuf[0x06];
-				sockfd = *(int *) &ship->decryptbuf[0x0C];
-				
-				for (ch=0;ch<serverNumConnections;ch++)
+				serverID = *(unsigned *) &ship->decryptbuf[0x06];
+				if (serverIP[0] == 0x00)
 				{
-					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->plySockfd == sockfd) && (connections[connectNum]->guildcard == guildcard))
-					{
-						client = connections[connectNum];
-						client->gotchardata = 1;
-						memcpy (&client->character.packetSize, &ship->decryptbuf[0x10], sizeof (CHARDATA));
+					*(unsigned *) &serverIP[0] = *(unsigned *) &ship->decryptbuf[0x0A];
+					printf ("Updated IP address to %u.%u.%u.%u\n", serverIP[0], serverIP[1], serverIP[2], serverIP[3]);
+				}
+				serverID++;
+				if (serverID != 0xFFFFFFFF)
+				{
+					printf ("Ship has successfully registered with the login server!!! Ship ID: %u\n", serverID );
+					printf ("Constructing Block List packet...\n\n");
+					ConstructBlockPacket();
+					printf ("Load quest allowance...\n");
+					quest_numallows = *(unsigned *) &ship->decryptbuf[0x0E];
+					if ( quest_allow )
+						free ( quest_allow );
+					quest_allow = malloc ( quest_numallows * 4  );
+					memcpy ( quest_allow, &ship->decryptbuf[0x12], quest_numallows * 4 );
+					printf ("Quest allowance item count: %u\n\n", quest_numallows );
+					normalName = *(unsigned *) &ship->decryptbuf[0x12 + ( quest_numallows * 4 )];
+					localName = *(unsigned *) &ship->decryptbuf[0x16 + ( quest_numallows * 4 )];
+					globalName = *(unsigned *) &ship->decryptbuf[0x1A + ( quest_numallows * 4 )];
+					memcpy (&ship->user_key[0], &ship_key[0], 128 ); // 1024-bit key
+					
+					// Change keys
+					
+					for (ch2=0;ch2<128;ch2++)
+						if (ship->key_change[ch2] != -1)
+							ship->user_key[ch2] = (unsigned char) ship->key_change[ch2]; // update the key
 						
-						/* Set up copies of the banks */
-						
-						memcpy (&client->char_bank, &client->character.bankUse, sizeof (BANK));
-						memcpy (&client->common_bank, &ship->decryptbuf[0x10+sizeof(CHARDATA)], sizeof (BANK));
-
-						cipher_ptr = &client->server_cipher;
-						if (client->isgm == 1)
-							*(unsigned *) &client->character.nameColorBlue = globalName;
-						else
-							if (isLocalGM(client->guildcard))
-								*(unsigned *) &client->character.nameColorBlue = localName;
-							else
-								*(unsigned *) &client->character.nameColorBlue = normalName;
-
-						if (client->character.inventoryUse > 30)
-							client->character.inventoryUse = 30;
-
-						client->equip_flags = 0;
-						switch (client->character._class)
-						{
-						case CLASS_HUMAR:
-							client->equip_flags |= HUNTER_FLAG;
-							client->equip_flags |= HUMAN_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						case CLASS_HUNEWEARL:
-							client->equip_flags |= HUNTER_FLAG;
-							client->equip_flags |= NEWMAN_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_HUCAST:
-							client->equip_flags |= HUNTER_FLAG;
-							client->equip_flags |= DROID_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						case CLASS_HUCASEAL:
-							client->equip_flags |= HUNTER_FLAG;
-							client->equip_flags |= DROID_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_RAMAR:
-							client->equip_flags |= RANGER_FLAG;
-							client->equip_flags |= HUMAN_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						case CLASS_RACAST:
-							client->equip_flags |= RANGER_FLAG;
-							client->equip_flags |= DROID_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						case CLASS_RACASEAL:
-							client->equip_flags |= RANGER_FLAG;
-							client->equip_flags |= DROID_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_RAMARL:
-							client->equip_flags |= RANGER_FLAG;
-							client->equip_flags |= HUMAN_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_FONEWM:
-							client->equip_flags |= FORCE_FLAG;
-							client->equip_flags |= NEWMAN_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						case CLASS_FONEWEARL:
-							client->equip_flags |= FORCE_FLAG;
-							client->equip_flags |= NEWMAN_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_FOMARL:
-							client->equip_flags |= FORCE_FLAG;
-							client->equip_flags |= HUMAN_FLAG;
-							client->equip_flags |= FEMALE_FLAG;
-							break;
-						case CLASS_FOMAR:
-							client->equip_flags |= FORCE_FLAG;
-							client->equip_flags |= HUMAN_FLAG;
-							client->equip_flags |= MALE_FLAG;
-							break;
-						}
-
-						// Let's fix hacked mags and weapons
-
-						for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-						{
-							if (client->character.inventory[ch2].in_use)
-								FixItem ( &client->character.inventory[ch2].item );
-						}
-
-						// Fix up equipped weapon, armor, shield, and mag equipment information
-
-						eq_weapon = 0;
-						eq_armor = 0;
-						eq_shield = 0;
-						eq_mag = 0;
-
-						for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-						{
-							if (client->character.inventory[ch2].flags & 0x08)
-							{
-								switch (client->character.inventory[ch2].item.data[0])
-								{
-								case 0x00:
-									eq_weapon++;
-									break;
-								case 0x01:
-									switch (client->character.inventory[ch2].item.data[1])
-									{
-									case 0x01:
-										eq_armor++;
-										break;
-									case 0x02:
-										eq_shield++;
-										break;
-									}
-									break;
-								case 0x02:
-									eq_mag++;
-									break;
-								}
-							}
-						}
-
-						if (eq_weapon > 1)
-						{
-							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-							{
-								// Unequip all weapons when there is more than one equipped.
-								if ((client->character.inventory[ch2].item.data[0] == 0x00) &&
-									(client->character.inventory[ch2].flags & 0x08))
-									client->character.inventory[ch2].flags &= ~(0x08);
-							}
-
-						}
-
-						if (eq_armor > 1)
-						{
-							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-							{
-								// Unequip all armor and slot items when there is more than one armor equipped.
-								if ((client->character.inventory[ch2].item.data[0] == 0x01) &&
-									(client->character.inventory[ch2].item.data[1] != 0x02) &&
-									(client->character.inventory[ch2].flags & 0x08))
-								{
-									client->character.inventory[ch2].item.data[3] = 0x00;
-									client->character.inventory[ch2].flags &= ~(0x08);
-								}
-							}
-						}
-
-						if (eq_shield > 1)
-						{
-							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-							{
-								// Unequip all shields when there is more than one equipped.
-								if ((client->character.inventory[ch2].item.data[0] == 0x01) &&
-									(client->character.inventory[ch2].item.data[1] == 0x02) &&
-									(client->character.inventory[ch2].flags & 0x08))
-								{
-									client->character.inventory[ch2].item.data[3] = 0x00;
-									client->character.inventory[ch2].flags &= ~(0x08);
-								}
-							}
-						}
-
-						if (eq_mag > 1)
-						{
-							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
-							{
-								// Unequip all mags when there is more than one equipped.
-								if ((client->character.inventory[ch2].item.data[0] == 0x02) &&
-									(client->character.inventory[ch2].flags & 0x08))
-									client->character.inventory[ch2].flags &= ~(0x08);
-							}
-						}
-
-						for (ch2=0;ch2<client->character.bankUse;ch2++)
-							FixItem ( (ITEM*) &client->character.bankInventory[ch2] );
-
-						baseATP = *(unsigned short*) &startingData[(client->character._class*14)];
-						baseMST = *(unsigned short*) &startingData[(client->character._class*14)+2];
-						baseEVP = *(unsigned short*) &startingData[(client->character._class*14)+4];
-						baseHP  = *(unsigned short*) &startingData[(client->character._class*14)+6];
-						baseDFP = *(unsigned short*) &startingData[(client->character._class*14)+8];
-						baseATA = *(unsigned short*) &startingData[(client->character._class*14)+10];
-
-						for (ch2=0;ch2<client->character.level;ch2++)
-						{
-							baseATP += playerLevelData[client->character._class][ch2].ATP;
-							baseMST += playerLevelData[client->character._class][ch2].MST;
-							baseEVP += playerLevelData[client->character._class][ch2].EVP;
-							baseHP  += playerLevelData[client->character._class][ch2].HP;
-							baseDFP += playerLevelData[client->character._class][ch2].DFP;
-							baseATA += playerLevelData[client->character._class][ch2].ATA;
-						}
-
-						client->matuse[0] = ( client->character.ATP - baseATP ) / 2;
-						client->matuse[1] = ( client->character.MST - baseMST ) / 2;
-						client->matuse[2] = ( client->character.EVP - baseEVP ) / 2;
-						client->matuse[3] = ( client->character.DFP - baseDFP ) / 2;
-						client->matuse[4] = ( client->character.LCK - 10 ) / 2;
-
-						//client->character.lang = 0x00;
-
-						cd = (unsigned char*) &client->character.packetSize;
-
-						cd[(8*28)+0x0F]  = client->matuse[0];
-						cd[(9*28)+0x0F]  = client->matuse[1];
-						cd[(10*28)+0x0F] = client->matuse[2];
-						cd[(11*28)+0x0F] = client->matuse[3];
-						cd[(12*28)+0x0F] = client->matuse[4];
-
-						encryptcopy (client, (unsigned char*) &client->character.packetSize, sizeof (CHARDATA) );
-						client->preferred_lobby = 0xFF;
-
-						cd[(8*28)+0x0F]  = 0x00; // Clear this stuff out to not mess up our item procedures.
-						cd[(9*28)+0x0F]  = 0x00;
-						cd[(10*28)+0x0F] = 0x00;
-						cd[(11*28)+0x0F] = 0x00;
-						cd[(12*28)+0x0F] = 0x00;
-
-						for (ch2=0;ch2<MAX_SAVED_LOBBIES;ch2++)
-						{
-							if (savedlobbies[ch2].guildcard == client->guildcard)
-							{
-								client->preferred_lobby = savedlobbies[ch2].lobby - 1;
-								savedlobbies[ch2].guildcard = 0;
-								break;
-							}
-						}
-
-						Send95 (client);
-
-						if ( (client->isgm) || (isLocalGM(client->guildcard)) )
-							WriteGM ("GM %u (%s) has connected", client->guildcard, Unicode_to_ASCII ((unsigned short*) &client->character.name[4]));
-						else
-							WriteLog ("User %u (%s) has connected", client->guildcard, Unicode_to_ASCII ((unsigned short*) &client->character.name[4]));
-						break;
-					}
+					prepare_key(&ship->user_key[0], sizeof(ship->user_key), &ship->cs_key);
+					prepare_key(&ship->user_key[0], sizeof(ship->user_key), &ship->sc_key);
+					memset ( &ship->encryptbuf[0x00], 0, 8 );
+					ship->encryptbuf[0x00] = 0x0F;
+					ship->encryptbuf[0x01] = 0x00;
+					if (global_rare_mult > 1) printf ("Custom global rare drop rate set: %d\n", global_rare_mult);
+					printf ( "Requesting drop charts from server...\n");
+					compressShipPacket ( ship, &ship->encryptbuf[0x00], 4 );
+				}
+				else
+				{
+					printf ("The ship has failed authentication to the logon server.  Retry in %u seconds...\n", LOGIN_RECONNECT_SECONDS);
+					initialize_logon();
 				}
 			}
 			break;
 		case 0x03:
-		{
-				unsigned guildcard;
+			// Reserved
+			break;
+		case 0x04:
+			switch (ship->decryptbuf[0x05])
+			{
+				case 0x01:
+				{
+					// Receive and store full player data here.
+					//
+					CLIENT* client;
+					unsigned guildcard,ch,ch2,eq_weapon,eq_armor,eq_shield,eq_mag;
+					int sockfd;
+					unsigned short baseATP, baseMST, baseEVP, baseHP, baseDFP, baseATA;
+					unsigned char* cd;
+					
+					guildcard = *(unsigned *) &ship->decryptbuf[0x06];
+					sockfd = *(int *) &ship->decryptbuf[0x0C];
+					
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if ((connections[connectNum]->plySockfd == sockfd) && (connections[connectNum]->guildcard == guildcard))
+						{
+							client = connections[connectNum];
+							client->gotchardata = 1;
+							memcpy (&client->character.packetSize, &ship->decryptbuf[0x10], sizeof (CHARDATA));
+							
+							/* Set up copies of the banks */
+							
+							memcpy (&client->char_bank, &client->character.bankUse, sizeof (BANK));
+							memcpy (&client->common_bank, &ship->decryptbuf[0x10+sizeof(CHARDATA)], sizeof (BANK));
+
+							cipher_ptr = &client->server_cipher;
+							if (client->isgm == 1)
+								*(unsigned *) &client->character.nameColorBlue = globalName;
+							else
+								if (isLocalGM(client->guildcard))
+									*(unsigned *) &client->character.nameColorBlue = localName;
+								else
+									*(unsigned *) &client->character.nameColorBlue = normalName;
+
+							if (client->character.inventoryUse > 30)
+								client->character.inventoryUse = 30;
+
+							client->equip_flags = 0;
+							switch (client->character._class)
+							{
+							case CLASS_HUMAR:
+								client->equip_flags |= HUNTER_FLAG;
+								client->equip_flags |= HUMAN_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							case CLASS_HUNEWEARL:
+								client->equip_flags |= HUNTER_FLAG;
+								client->equip_flags |= NEWMAN_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_HUCAST:
+								client->equip_flags |= HUNTER_FLAG;
+								client->equip_flags |= DROID_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							case CLASS_HUCASEAL:
+								client->equip_flags |= HUNTER_FLAG;
+								client->equip_flags |= DROID_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_RAMAR:
+								client->equip_flags |= RANGER_FLAG;
+								client->equip_flags |= HUMAN_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							case CLASS_RACAST:
+								client->equip_flags |= RANGER_FLAG;
+								client->equip_flags |= DROID_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							case CLASS_RACASEAL:
+								client->equip_flags |= RANGER_FLAG;
+								client->equip_flags |= DROID_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_RAMARL:
+								client->equip_flags |= RANGER_FLAG;
+								client->equip_flags |= HUMAN_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_FONEWM:
+								client->equip_flags |= FORCE_FLAG;
+								client->equip_flags |= NEWMAN_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							case CLASS_FONEWEARL:
+								client->equip_flags |= FORCE_FLAG;
+								client->equip_flags |= NEWMAN_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_FOMARL:
+								client->equip_flags |= FORCE_FLAG;
+								client->equip_flags |= HUMAN_FLAG;
+								client->equip_flags |= FEMALE_FLAG;
+								break;
+							case CLASS_FOMAR:
+								client->equip_flags |= FORCE_FLAG;
+								client->equip_flags |= HUMAN_FLAG;
+								client->equip_flags |= MALE_FLAG;
+								break;
+							}
+
+							// Let's fix hacked mags and weapons
+
+							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+							{
+								if (client->character.inventory[ch2].in_use)
+									FixItem ( &client->character.inventory[ch2].item );
+							}
+
+							// Fix up equipped weapon, armor, shield, and mag equipment information
+
+							eq_weapon = 0;
+							eq_armor = 0;
+							eq_shield = 0;
+							eq_mag = 0;
+
+							for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+							{
+								if (client->character.inventory[ch2].flags & 0x08)
+								{
+									switch (client->character.inventory[ch2].item.data[0])
+									{
+									case 0x00:
+										eq_weapon++;
+										break;
+									case 0x01:
+										switch (client->character.inventory[ch2].item.data[1])
+										{
+										case 0x01:
+											eq_armor++;
+											break;
+										case 0x02:
+											eq_shield++;
+											break;
+										}
+										break;
+									case 0x02:
+										eq_mag++;
+										break;
+									}
+								}
+							}
+
+							if (eq_weapon > 1)
+							{
+								for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+								{
+									// Unequip all weapons when there is more than one equipped.
+									if ((client->character.inventory[ch2].item.data[0] == 0x00) &&
+										(client->character.inventory[ch2].flags & 0x08))
+										client->character.inventory[ch2].flags &= ~(0x08);
+								}
+
+							}
+
+							if (eq_armor > 1)
+							{
+								for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+								{
+									// Unequip all armor and slot items when there is more than one armor equipped.
+									if ((client->character.inventory[ch2].item.data[0] == 0x01) &&
+										(client->character.inventory[ch2].item.data[1] != 0x02) &&
+										(client->character.inventory[ch2].flags & 0x08))
+									{
+										client->character.inventory[ch2].item.data[3] = 0x00;
+										client->character.inventory[ch2].flags &= ~(0x08);
+									}
+								}
+							}
+
+							if (eq_shield > 1)
+							{
+								for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+								{
+									// Unequip all shields when there is more than one equipped.
+									if ((client->character.inventory[ch2].item.data[0] == 0x01) &&
+										(client->character.inventory[ch2].item.data[1] == 0x02) &&
+										(client->character.inventory[ch2].flags & 0x08))
+									{
+										client->character.inventory[ch2].item.data[3] = 0x00;
+										client->character.inventory[ch2].flags &= ~(0x08);
+									}
+								}
+							}
+
+							if (eq_mag > 1)
+							{
+								for (ch2=0;ch2<client->character.inventoryUse;ch2++)
+								{
+									// Unequip all mags when there is more than one equipped.
+									if ((client->character.inventory[ch2].item.data[0] == 0x02) &&
+										(client->character.inventory[ch2].flags & 0x08))
+										client->character.inventory[ch2].flags &= ~(0x08);
+								}
+							}
+
+							for (ch2=0;ch2<client->character.bankUse;ch2++)
+								FixItem ( (ITEM*) &client->character.bankInventory[ch2] );
+
+							baseATP = *(unsigned short*) &startingData[(client->character._class*14)];
+							baseMST = *(unsigned short*) &startingData[(client->character._class*14)+2];
+							baseEVP = *(unsigned short*) &startingData[(client->character._class*14)+4];
+							baseHP  = *(unsigned short*) &startingData[(client->character._class*14)+6];
+							baseDFP = *(unsigned short*) &startingData[(client->character._class*14)+8];
+							baseATA = *(unsigned short*) &startingData[(client->character._class*14)+10];
+
+							for (ch2=0;ch2<client->character.level;ch2++)
+							{
+								baseATP += playerLevelData[client->character._class][ch2].ATP;
+								baseMST += playerLevelData[client->character._class][ch2].MST;
+								baseEVP += playerLevelData[client->character._class][ch2].EVP;
+								baseHP  += playerLevelData[client->character._class][ch2].HP;
+								baseDFP += playerLevelData[client->character._class][ch2].DFP;
+								baseATA += playerLevelData[client->character._class][ch2].ATA;
+							}
+
+							client->matuse[0] = ( client->character.ATP - baseATP ) / 2;
+							client->matuse[1] = ( client->character.MST - baseMST ) / 2;
+							client->matuse[2] = ( client->character.EVP - baseEVP ) / 2;
+							client->matuse[3] = ( client->character.DFP - baseDFP ) / 2;
+							client->matuse[4] = ( client->character.LCK - 10 ) / 2;
+
+							//client->character.lang = 0x00;
+
+							cd = (unsigned char*) &client->character.packetSize;
+
+							cd[(8*28)+0x0F]  = client->matuse[0];
+							cd[(9*28)+0x0F]  = client->matuse[1];
+							cd[(10*28)+0x0F] = client->matuse[2];
+							cd[(11*28)+0x0F] = client->matuse[3];
+							cd[(12*28)+0x0F] = client->matuse[4];
+
+							encryptcopy (client, (unsigned char*) &client->character.packetSize, sizeof (CHARDATA) );
+							client->preferred_lobby = 0xFF;
+
+							cd[(8*28)+0x0F]  = 0x00; // Clear this stuff out to not mess up our item procedures.
+							cd[(9*28)+0x0F]  = 0x00;
+							cd[(10*28)+0x0F] = 0x00;
+							cd[(11*28)+0x0F] = 0x00;
+							cd[(12*28)+0x0F] = 0x00;
+
+							for (ch2=0;ch2<MAX_SAVED_LOBBIES;ch2++)
+							{
+								if (savedlobbies[ch2].guildcard == client->guildcard)
+								{
+									client->preferred_lobby = savedlobbies[ch2].lobby - 1;
+									savedlobbies[ch2].guildcard = 0;
+									break;
+								}
+							}
+
+							Send95 (client);
+
+							if ( (client->isgm) || (isLocalGM(client->guildcard)) )
+								WriteGM ("GM %u (%s) has connected", client->guildcard, Unicode_to_ASCII ((unsigned short*) &client->character.name[4]));
+							else
+								WriteLog ("User %u (%s) has connected", client->guildcard, Unicode_to_ASCII ((unsigned short*) &client->character.name[4]));
+							break;
+						}
+					}
+				}
+				break;
+			case 0x03:
+			{
+					unsigned guildcard;
+					CLIENT* client;
+					
+					guildcard = *(unsigned *) &ship->decryptbuf[0x06];
+
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if ((connections[connectNum]->guildcard == guildcard) && (connections[connectNum]->released == 1))
+						{
+							// Let the released client roam free...!
+							client = connections[connectNum];
+							Send19 (client->releaseIP[0], client->releaseIP[1], client->releaseIP[2], client->releaseIP[3], 
+								client->releasePort, client);
+							break;
+						}
+					}
+				}
+			}
+			break;
+		case 0x05:
+			// Reserved
+			break;
+		case 0x06:
+			// Reserved
+			break;
+		case 0x07:
+			// Card database full.
+			gcn = *(unsigned *) &ship->decryptbuf[0x06];
+
+			for (ch=0;ch<serverNumConnections;ch++)
+			{
+				connectNum = serverConnectionList[ch];
+				if (connections[connectNum]->guildcard == gcn)
+				{
+					Send1A ("Your guild card database on the server is full.\n\nYou were unable to accept the guild card.\n\nPlease delete some cards.  (40 max)", connections[connectNum]);
+					break;
+				}
+			}
+			break;
+		case 0x08:
+			switch (ship->decryptbuf[0x05])
+			{
+			case 0x00:
+				// ???
+				{
+					gcn = *(unsigned *) &ship->decryptbuf[0x06];
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if (connections[connectNum]->guildcard == gcn)
+						{
+							Send1A ("This account has just logged on.\n\nYou are now being disconnected.", connections[connectNum]);
+							connections[connectNum]->todc = 1;
+							break;
+						}
+					}
+				}
+				break;
+			case 0x01:
+				// Guild card search
+				{
+					// Someone's doing a guild card search...   Check to see if that guild card is on our ship...
+
+					unsigned client_gcn, ch2;
+					unsigned char *n;
+					unsigned char *c;
+					unsigned short blockPort;
+
+					gcn = *(unsigned *) &ship->decryptbuf[0x06];
+					client_gcn = *(unsigned *) &ship->decryptbuf[0x0A];
+
+					// requesting ship ID @ 0x0E
+
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if ((connections[connectNum]->guildcard == gcn) && (connections[connectNum]->lobbyNum))
+						{
+							if (connections[connectNum]->lobbyNum < 0x10)
+								for (ch2=0;ch2<MAX_SAVED_LOBBIES;ch2++)
+								{
+									if (savedlobbies[ch2].guildcard == 0)
+									{
+										savedlobbies[ch2].guildcard = client_gcn;
+										savedlobbies[ch2].lobby = connections[connectNum]->lobbyNum;
+										break;
+									}
+								}
+							ship->encryptbuf[0x00] = 0x08;
+							ship->encryptbuf[0x01] = 0x02;
+							*(unsigned *) &ship->encryptbuf[0x02] = serverID;
+							*(unsigned *) &ship->encryptbuf[0x06] = *(unsigned *) &ship->decryptbuf[0x0E];
+							// 0x10 = 41 result packet
+							memset (&ship->encryptbuf[0x0A], 0, 0x136);
+							ship->encryptbuf[0x10] = 0x30;
+							ship->encryptbuf[0x11] = 0x01;
+							ship->encryptbuf[0x12] = 0x41;
+							ship->encryptbuf[0x1A] = 0x01;
+							*(unsigned *) &ship->encryptbuf[0x1C] = client_gcn;
+							*(unsigned *) &ship->encryptbuf[0x20] = gcn;
+							ship->encryptbuf[0x24] = 0x10;
+							ship->encryptbuf[0x26] = 0x19;
+							*(unsigned *) &ship->encryptbuf[0x2C] = *(unsigned *) &serverIP[0];
+							blockPort = serverPort + connections[connectNum]->block;
+							*(unsigned short *) &ship->encryptbuf[0x30] = (unsigned short) blockPort;					
+							memcpy (&ship->encryptbuf[0x34], &lobbyString[0], 12 );						
+							if ( connections[connectNum]->lobbyNum < 0x10 )
+							{
+								if ( connections[connectNum]->lobbyNum < 10 )
+								{
+									ship->encryptbuf[0x40] = 0x30;
+									ship->encryptbuf[0x42] = 0x30 + connections[connectNum]->lobbyNum;
+								}
+								else
+								{
+									ship->encryptbuf[0x40] = 0x31;
+									ship->encryptbuf[0x42] = 0x26 + connections[connectNum]->lobbyNum;
+								}
+							}
+							else
+							{
+									ship->encryptbuf[0x40] = 0x30;
+									ship->encryptbuf[0x42] = 0x31;
+							}
+							ship->encryptbuf[0x44] = 0x2C;
+							memcpy ( &ship->encryptbuf[0x46], &blockString[0], 10 );
+							if ( connections[connectNum]->block < 10 )
+							{
+								ship->encryptbuf[0x50] = 0x30;
+								ship->encryptbuf[0x52] = 0x30 + connections[connectNum]->block;
+							}
+							else
+							{
+								ship->encryptbuf[0x50] = 0x31;
+								ship->encryptbuf[0x52] = 0x26 + connections[connectNum]->block;
+							}
+
+							ship->encryptbuf[0x54] = 0x2C;
+							if (serverID < 10)
+							{
+								ship->encryptbuf[0x56] = 0x30;
+								ship->encryptbuf[0x58] = 0x30 + serverID;
+							}
+							else
+							{
+								ship->encryptbuf[0x56] = 0x30 + ( serverID / 10 );
+								ship->encryptbuf[0x58] = 0x30 + ( serverID % 10 );
+							}
+							ship->encryptbuf[0x5A] = 0x3A;
+							n = (unsigned char*) &ship->encryptbuf[0x5C];
+							c = (unsigned char*) &Ship_Name[0];
+							while (*c != 0x00)
+							{
+								*(n++) = *(c++);
+								n++;
+							}
+							if ( connections[connectNum]->lobbyNum < 0x10 )
+							ship->encryptbuf[0xBC] = (unsigned char) connections[connectNum]->lobbyNum; else
+							ship->encryptbuf[0xBC] = 0x01;
+							ship->encryptbuf[0xBE] = 0x1A;
+							memcpy (&ship->encryptbuf[0x100], &connections[connectNum]->character.name[0], 24);
+							compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x140 );
+							break;
+						}
+					}
+				}
+				break;
+			case 0x02:
+				// Send guild result to user
+				{
+					gcn = *(unsigned *) &ship->decryptbuf[0x20];
+
+					// requesting ship ID @ 0x0E
+
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if (connections[connectNum]->guildcard == gcn)
+						{
+							cipher_ptr = &connections[connectNum]->server_cipher;
+							encryptcopy (connections[connectNum], &ship->decryptbuf[0x14], 0x130);
+							break;
+						}
+					}
+				}
+				break;
+			case 0x03:
+				// Send mail to user
+				{
+					gcn = *(unsigned *) &ship->decryptbuf[0x36];
+
+					// requesting ship ID @ 0x0E
+
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if (connections[connectNum]->guildcard == gcn)
+						{
+							cipher_ptr = &connections[connectNum]->server_cipher;
+							encryptcopy (connections[connectNum], &ship->decryptbuf[0x06], 0x45C);
+							break;
+						}
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		case 0x09:
+			// Reserved for team functions.
+			switch (ship->decryptbuf[0x05])
+			{
 				CLIENT* client;
-				
-				guildcard = *(unsigned *) &ship->decryptbuf[0x06];
+				unsigned char CreateResult;
+
+				case 0x00:
+					CreateResult = ship->decryptbuf[0x06];
+					gcn = *(unsigned *) &ship->decryptbuf[0x07];
+					for (ch=0;ch<serverNumConnections;ch++)
+					{
+						connectNum = serverConnectionList[ch];
+						if (connections[connectNum]->guildcard == gcn)
+						{
+							client = connections[connectNum];
+							switch (CreateResult)
+							{
+							case 0x00:
+								// All good!!!
+								client->character.teamID = *(unsigned *) &ship->decryptbuf[0x823];
+								memcpy (&client->character.teamFlag[0], &ship->decryptbuf[0x0B], 0x800);
+								client->character.privilegeLevel = 0x40;
+								client->character.unknown15 = 0x00986C84; // ??
+								client->character.teamName[0] = 0x09;
+								client->character.teamName[2] = 0x45;
+								client->character.privilegeLevel = 0x40;
+								memcpy (&client->character.teamName[4], &ship->decryptbuf[0x80B], 24);
+								SendEA (0x02, client);
+								SendToLobby ( client->lobby, 12, MakePacketEA15 ( client ), 2152, 0 );
+								SendEA (0x12, client);
+								SendEA (0x1D, client);
+								break;
+							case 0x01:
+								Send1A ("The server failed to create the team due to a MySQL error.\n\nPlease contact the server administrator.", client);
+								break;
+							case 0x02:
+								Send01 ("Cannot create team\nbecause team\n already exists!!!", client);
+								break;
+							case 0x03:
+								Send01 ("Cannot create team\nbecause you are\nalready in a team!", client);
+								break;
+							}
+							break;
+						}
+					}
+					break;
+				case 0x01:
+					// Flag updated
+					{
+						unsigned teamid;
+						CLIENT* tClient;
+
+						teamid = *(unsigned *) &ship->decryptbuf[0x07];
+
+						for (ch=0;ch<serverNumConnections;ch++)
+						{
+							connectNum = serverConnectionList[ch];
+							if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
+							{
+								tClient = connections[connectNum];
+								memcpy ( &tClient->character.teamFlag[0], &ship->decryptbuf[0x0B], 0x800);
+								SendToLobby ( tClient->lobby, 12, MakePacketEA15 ( tClient ), 2152, 0 );
+							}
+						}
+					}
+					break;
+				case 0x02:
+					// Team dissolved
+					{
+						unsigned teamid;
+						CLIENT* tClient;
+
+						teamid = *(unsigned *) &ship->decryptbuf[0x07];
+
+						for (ch=0;ch<serverNumConnections;ch++)
+						{
+							connectNum = serverConnectionList[ch];
+							if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
+							{
+								tClient = connections[connectNum];
+								memset ( &tClient->character.guildCard2, 0, 2108 );
+								SendToLobby ( tClient->lobby, 12, MakePacketEA15 ( tClient ), 2152, 0 );
+								SendEA ( 0x12, tClient );
+							}
+						}
+					}
+					break;
+				case 0x04:
+					// Team chat
+					{
+						unsigned teamid, size;
+						CLIENT* tClient;
+
+						size = *(unsigned *) &ship->decryptbuf[0x00];
+						size -= 10;
+
+						teamid = *(unsigned *) &ship->decryptbuf[0x06];
+
+						for (ch=0;ch<serverNumConnections;ch++)
+						{
+							connectNum = serverConnectionList[ch];
+							if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
+							{
+								tClient = connections[connectNum];
+								cipher_ptr = &tClient->server_cipher;
+								encryptcopy ( tClient, &ship->decryptbuf[0x0A], size );
+							}
+						}
+					}
+					break;
+				case 0x05:
+					// Request Team List
+					{
+						unsigned gcn;
+						unsigned short size;
+						CLIENT* tClient;
+
+						gcn = *(unsigned *) &ship->decryptbuf[0x0A];
+						size = *(unsigned short*) &ship->decryptbuf[0x0E];
+
+						for (ch=0;ch<serverNumConnections;ch++)
+						{
+							connectNum = serverConnectionList[ch];
+							if (connections[connectNum]->guildcard == gcn)
+							{					
+								tClient = connections[connectNum];
+								cipher_ptr = &tClient->server_cipher;
+								encryptcopy (tClient, &ship->decryptbuf[0x0E], size);
+								break;
+							}
+						}
+					}
+					break;
+			}
+			break;
+		case 0x0A:
+			// Reserved
+			break;
+		case 0x0B:
+			// Player authentication result from the logon server.
+			gcn = *(unsigned *) &ship->decryptbuf[0x06];
+			if (ship->decryptbuf[0x05] == 0)
+			{
+				CLIENT* client;
+
+				// Finish up the logon process here.
 
 				for (ch=0;ch<serverNumConnections;ch++)
 				{
 					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->guildcard == guildcard) && (connections[connectNum]->released == 1))
+					if (connections[connectNum]->temp_guildcard == gcn)
 					{
-						// Let the released client roam free...!
 						client = connections[connectNum];
-						Send19 (client->releaseIP[0], client->releaseIP[1], client->releaseIP[2], client->releaseIP[3], 
-							client->releasePort, client);
+						client->slotnum = ship->decryptbuf[0x0A];
+						client->isgm = ship->decryptbuf[0x0B];
+						memcpy (&client->encryptbuf[0], &PacketE6[0], sizeof (PacketE6));
+						*(unsigned *) &client->encryptbuf[0x10] = gcn;
+						client->guildcard = gcn;
+						*(unsigned *) &client->encryptbuf[0x14] = *(unsigned*) &ship->decryptbuf[0x0C];
+						*(long long *) &client->encryptbuf[0x38] = *(long long*) &ship->decryptbuf[0x10];
+						if (client->decryptbuf[0x16] < 0x05)
+						{
+							Send1A ("Client/Server synchronization error.", client);
+							client->todc = 1;
+						}
+						else
+						{
+							cipher_ptr = &client->server_cipher;
+							encryptcopy (client, &client->encryptbuf[0], sizeof (PacketE6));
+							client->lastTick = (unsigned) servertime;
+							if (client->block == 0)
+							{
+								if (logon.sockfd >= 0)
+									Send07(client);
+								else
+								{
+									Send1A("This ship has unfortunately lost it's connection with the logon server...\nData cannot be saved.\n\nPlease reconnect later.", client);
+									client->todc = 1;
+								}
+							}
+							else
+							{
+								blocks[client->block - 1]->count++;
+								// Request E7 information from server...
+								Send83(client); // Lobby data
+								ShipSend04 (0x00, client, &logon);
+							}
+						}
 						break;
 					}
 				}
 			}
-		}
-		break;
-	case 0x05:
-		// Reserved
-		break;
-	case 0x06:
-		// Reserved
-		break;
-	case 0x07:
-		// Card database full.
-		gcn = *(unsigned *) &ship->decryptbuf[0x06];
-
-		for (ch=0;ch<serverNumConnections;ch++)
-		{
-			connectNum = serverConnectionList[ch];
-			if (connections[connectNum]->guildcard == gcn)
+			else
 			{
-				Send1A ("Your guild card database on the server is full.\n\nYou were unable to accept the guild card.\n\nPlease delete some cards.  (40 max)", connections[connectNum]);
-				break;
-			}
-		}
-		break;
-	case 0x08:
-		switch (ship->decryptbuf[0x05])
-		{
-		case 0x00:
-			// ???
-			{
-				gcn = *(unsigned *) &ship->decryptbuf[0x06];
+				// Deny connection here.
 				for (ch=0;ch<serverNumConnections;ch++)
 				{
 					connectNum = serverConnectionList[ch];
-					if (connections[connectNum]->guildcard == gcn)
+					if (connections[connectNum]->temp_guildcard == gcn)
 					{
-						Send1A ("This account has just logged on.\n\nYou are now being disconnected.", connections[connectNum]);
+						Send1A ("Security violation.", connections[connectNum]);
 						connections[connectNum]->todc = 1;
 						break;
 					}
 				}
 			}
 			break;
-		case 0x01:
-			// Guild card search
+		case 0x0D:
+			// 00 = Request ship list
+			// 01 = Ship list data (include IP addresses)
+			switch (ship->decryptbuf[0x05])
 			{
-				// Someone's doing a guild card search...   Check to see if that guild card is on our ship...
-
-				unsigned client_gcn, ch2;
-				unsigned char *n;
-				unsigned char *c;
-				unsigned short blockPort;
-
-				gcn = *(unsigned *) &ship->decryptbuf[0x06];
-				client_gcn = *(unsigned *) &ship->decryptbuf[0x0A];
-
-				// requesting ship ID @ 0x0E
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->guildcard == gcn) && (connections[connectNum]->lobbyNum))
-					{
-						if (connections[connectNum]->lobbyNum < 0x10)
-							for (ch2=0;ch2<MAX_SAVED_LOBBIES;ch2++)
-							{
-								if (savedlobbies[ch2].guildcard == 0)
-								{
-									savedlobbies[ch2].guildcard = client_gcn;
-									savedlobbies[ch2].lobby = connections[connectNum]->lobbyNum;
-									break;
-								}
-							}
-						ship->encryptbuf[0x00] = 0x08;
-						ship->encryptbuf[0x01] = 0x02;
-						*(unsigned *) &ship->encryptbuf[0x02] = serverID;
-						*(unsigned *) &ship->encryptbuf[0x06] = *(unsigned *) &ship->decryptbuf[0x0E];
-						// 0x10 = 41 result packet
-						memset (&ship->encryptbuf[0x0A], 0, 0x136);
-						ship->encryptbuf[0x10] = 0x30;
-						ship->encryptbuf[0x11] = 0x01;
-						ship->encryptbuf[0x12] = 0x41;
-						ship->encryptbuf[0x1A] = 0x01;
-						*(unsigned *) &ship->encryptbuf[0x1C] = client_gcn;
-						*(unsigned *) &ship->encryptbuf[0x20] = gcn;
-						ship->encryptbuf[0x24] = 0x10;
-						ship->encryptbuf[0x26] = 0x19;
-						*(unsigned *) &ship->encryptbuf[0x2C] = *(unsigned *) &serverIP[0];
-						blockPort = serverPort + connections[connectNum]->block;
-						*(unsigned short *) &ship->encryptbuf[0x30] = (unsigned short) blockPort;					
-						memcpy (&ship->encryptbuf[0x34], &lobbyString[0], 12 );						
-						if ( connections[connectNum]->lobbyNum < 0x10 )
-						{
-							if ( connections[connectNum]->lobbyNum < 10 )
-							{
-								ship->encryptbuf[0x40] = 0x30;
-								ship->encryptbuf[0x42] = 0x30 + connections[connectNum]->lobbyNum;
-							}
-							else
-							{
-								ship->encryptbuf[0x40] = 0x31;
-								ship->encryptbuf[0x42] = 0x26 + connections[connectNum]->lobbyNum;
-							}
-						}
-						else
-						{
-								ship->encryptbuf[0x40] = 0x30;
-								ship->encryptbuf[0x42] = 0x31;
-						}
-						ship->encryptbuf[0x44] = 0x2C;
-						memcpy ( &ship->encryptbuf[0x46], &blockString[0], 10 );
-						if ( connections[connectNum]->block < 10 )
-						{
-							ship->encryptbuf[0x50] = 0x30;
-							ship->encryptbuf[0x52] = 0x30 + connections[connectNum]->block;
-						}
-						else
-						{
-							ship->encryptbuf[0x50] = 0x31;
-							ship->encryptbuf[0x52] = 0x26 + connections[connectNum]->block;
-						}
-
-						ship->encryptbuf[0x54] = 0x2C;
-						if (serverID < 10)
-						{
-							ship->encryptbuf[0x56] = 0x30;
-							ship->encryptbuf[0x58] = 0x30 + serverID;
-						}
-						else
-						{
-							ship->encryptbuf[0x56] = 0x30 + ( serverID / 10 );
-							ship->encryptbuf[0x58] = 0x30 + ( serverID % 10 );
-						}
-						ship->encryptbuf[0x5A] = 0x3A;
-						n = (unsigned char*) &ship->encryptbuf[0x5C];
-						c = (unsigned char*) &Ship_Name[0];
-						while (*c != 0x00)
-						{
-							*(n++) = *(c++);
-							n++;
-						}
-						if ( connections[connectNum]->lobbyNum < 0x10 )
-						ship->encryptbuf[0xBC] = (unsigned char) connections[connectNum]->lobbyNum; else
-						ship->encryptbuf[0xBC] = 0x01;
-						ship->encryptbuf[0xBE] = 0x1A;
-						memcpy (&ship->encryptbuf[0x100], &connections[connectNum]->character.name[0], 24);
-						compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x140 );
-						break;
-					}
-				}
-			}
-			break;
-		case 0x02:
-			// Send guild result to user
-			{
-				gcn = *(unsigned *) &ship->decryptbuf[0x20];
-
-				// requesting ship ID @ 0x0E
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if (connections[connectNum]->guildcard == gcn)
-					{
-						cipher_ptr = &connections[connectNum]->server_cipher;
-						encryptcopy (connections[connectNum], &ship->decryptbuf[0x14], 0x130);
-						break;
-					}
-				}
-			}
-			break;
-		case 0x03:
-			// Send mail to user
-			{
-				gcn = *(unsigned *) &ship->decryptbuf[0x36];
-
-				// requesting ship ID @ 0x0E
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if (connections[connectNum]->guildcard == gcn)
-					{
-						cipher_ptr = &connections[connectNum]->server_cipher;
-						encryptcopy (connections[connectNum], &ship->decryptbuf[0x06], 0x45C);
-						break;
-					}
-				}
-			}
-			break;
-		default:
-			break;
-		}
-		break;
-	case 0x09:
-		// Reserved for team functions.
-		switch (ship->decryptbuf[0x05])
-		{
-			CLIENT* client;
-			unsigned char CreateResult;
-
-		case 0x00:
-			CreateResult = ship->decryptbuf[0x06];
-			gcn = *(unsigned *) &ship->decryptbuf[0x07];
-			for (ch=0;ch<serverNumConnections;ch++)
-			{
-				connectNum = serverConnectionList[ch];
-				if (connections[connectNum]->guildcard == gcn)
-				{
-					client = connections[connectNum];
-					switch (CreateResult)
-					{
-					case 0x00:
-						// All good!!!
-						client->character.teamID = *(unsigned *) &ship->decryptbuf[0x823];
-						memcpy (&client->character.teamFlag[0], &ship->decryptbuf[0x0B], 0x800);
-						client->character.privilegeLevel = 0x40;
-						client->character.unknown15 = 0x00986C84; // ??
-						client->character.teamName[0] = 0x09;
-						client->character.teamName[2] = 0x45;
-						client->character.privilegeLevel = 0x40;
-						memcpy (&client->character.teamName[4], &ship->decryptbuf[0x80B], 24);
-						SendEA (0x02, client);
-						SendToLobby ( client->lobby, 12, MakePacketEA15 ( client ), 2152, 0 );
-						SendEA (0x12, client);
-						SendEA (0x1D, client);
-						break;
-					case 0x01:
-						Send1A ("The server failed to create the team due to a MySQL error.\n\nPlease contact the server administrator.", client);
-						break;
-					case 0x02:
-						Send01 ("Cannot create team\nbecause team\n already exists!!!", client);
-						break;
-					case 0x03:
-						Send01 ("Cannot create team\nbecause you are\nalready in a team!", client);
-						break;
-					}
-					break;
-				}
-			}
-			break;
-		case 0x01:
-			// Flag updated
-			{
-				unsigned teamid;
-				CLIENT* tClient;
-
-				teamid = *(unsigned *) &ship->decryptbuf[0x07];
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
-					{
-						tClient = connections[connectNum];
-						memcpy ( &tClient->character.teamFlag[0], &ship->decryptbuf[0x0B], 0x800);
-						SendToLobby ( tClient->lobby, 12, MakePacketEA15 ( tClient ), 2152, 0 );
-					}
-				}
-			}
-			break;
-		case 0x02:
-			// Team dissolved
-			{
-				unsigned teamid;
-				CLIENT* tClient;
-
-				teamid = *(unsigned *) &ship->decryptbuf[0x07];
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
-					{
-						tClient = connections[connectNum];
-						memset ( &tClient->character.guildCard2, 0, 2108 );
-						SendToLobby ( tClient->lobby, 12, MakePacketEA15 ( tClient ), 2152, 0 );
-						SendEA ( 0x12, tClient );
-					}
-				}
-			}
-			break;
-		case 0x04:
-			// Team chat
-			{
-				unsigned teamid, size;
-				CLIENT* tClient;
-
-				size = *(unsigned *) &ship->decryptbuf[0x00];
-				size -= 10;
-
-				teamid = *(unsigned *) &ship->decryptbuf[0x06];
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if ((connections[connectNum]->guildcard != 0) && (connections[connectNum]->character.teamID == teamid))
-					{
-						tClient = connections[connectNum];
-						cipher_ptr = &tClient->server_cipher;
-						encryptcopy ( tClient, &ship->decryptbuf[0x0A], size );
-					}
-				}
-			}
-			break;
-		case 0x05:
-			// Request Team List
-			{
-				unsigned gcn;
-				unsigned short size;
-				CLIENT* tClient;
-
-				gcn = *(unsigned *) &ship->decryptbuf[0x0A];
-				size = *(unsigned short*) &ship->decryptbuf[0x0E];
-
-				for (ch=0;ch<serverNumConnections;ch++)
-				{
-					connectNum = serverConnectionList[ch];
-					if (connections[connectNum]->guildcard == gcn)
-					{					
-						tClient = connections[connectNum];
-						cipher_ptr = &tClient->server_cipher;
-						encryptcopy (tClient, &ship->decryptbuf[0x0E], size);
-						break;
-					}
-				}
-			}
-			break;
-		}
-		break;
-	case 0x0A:
-		// Reserved
-		break;
-	case 0x0B:
-		// Player authentication result from the logon server.
-		gcn = *(unsigned *) &ship->decryptbuf[0x06];
-		if (ship->decryptbuf[0x05] == 0)
-		{
-			CLIENT* client;
-
-			// Finish up the logon process here.
-
-			for (ch=0;ch<serverNumConnections;ch++)
-			{
-				connectNum = serverConnectionList[ch];
-				if (connections[connectNum]->temp_guildcard == gcn)
-				{
-					client = connections[connectNum];
-					client->slotnum = ship->decryptbuf[0x0A];
-					client->isgm = ship->decryptbuf[0x0B];
-					memcpy (&client->encryptbuf[0], &PacketE6[0], sizeof (PacketE6));
-					*(unsigned *) &client->encryptbuf[0x10] = gcn;
-					client->guildcard = gcn;
-					*(unsigned *) &client->encryptbuf[0x14] = *(unsigned*) &ship->decryptbuf[0x0C];
-					*(long long *) &client->encryptbuf[0x38] = *(long long*) &ship->decryptbuf[0x10];
-					if (client->decryptbuf[0x16] < 0x05)
-					{
-						Send1A ("Client/Server synchronization error.", client);
-						client->todc = 1;
-					}
-					else
-					{
-						cipher_ptr = &client->server_cipher;
-						encryptcopy (client, &client->encryptbuf[0], sizeof (PacketE6));
-						client->lastTick = (unsigned) servertime;
-						if (client->block == 0)
-						{
-							if (logon.sockfd >= 0)
-								Send07(client);
-							else
-							{
-								Send1A("This ship has unfortunately lost it's connection with the logon server...\nData cannot be saved.\n\nPlease reconnect later.", client);
-								client->todc = 1;
-							}
-						}
-						else
-						{
-							blocks[client->block - 1]->count++;
-							// Request E7 information from server...
-							Send83(client); // Lobby data
-							ShipSend04 (0x00, client, &logon);
-						}
-					}
-					break;
-				}
-			}
-		}
-		else
-		{
-			// Deny connection here.
-			for (ch=0;ch<serverNumConnections;ch++)
-			{
-				connectNum = serverConnectionList[ch];
-				if (connections[connectNum]->temp_guildcard == gcn)
-				{
-					Send1A ("Security violation.", connections[connectNum]);
-					connections[connectNum]->todc = 1;
-					break;
-				}
-			}
-		}
-		break;
-	case 0x0D:
-		// 00 = Request ship list
-		// 01 = Ship list data (include IP addresses)
-		switch (ship->decryptbuf[0x05])
-		{
-			case 0x01:
+				case 0x01:
 				{
 					unsigned char ch;
 					int sockfd;
@@ -2002,114 +2002,114 @@ void LogonProcessPacket (SERVER* ship)
 						}
 					}
 				}
-				break;
-			default:
-				break;
-		}
-		break;
-	case 0x0F:
-		// Receiving drop chart
-		episode = ship->decryptbuf[0x05];
-		part = ship->decryptbuf[0x06];
-		if ( ship->decryptbuf[0x06] == 0 )
-			printf ("Received drop chart from login server...\n");
-		switch ( episode )
-		{
-		case 0x01:
-			if ( part == 0 )
-				printf ("Episode I ..." );
-			else
-				printf (" OK!\n");
-			memcpy ( &rt_tables_ep1[(sizeof(rt_tables_ep1) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep1) >> 1 );
-			break;
-		case 0x02:
-			if ( part == 0 )
-				printf ("Episode II ..." );
-			else
-				printf (" OK!\n");
-			memcpy ( &rt_tables_ep2[(sizeof(rt_tables_ep2) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep2) >> 1 );
-			break;
-		case 0x03:
-			if ( part == 0 )
-				printf ("Episode IV ..." );
-			else
-				printf (" OK!\n");
-			memcpy ( &rt_tables_ep4[(sizeof(rt_tables_ep4) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep4) >> 1 );
-			break;
-		}
-		*(unsigned *) &ship->encryptbuf[0x00] = *(unsigned *) &ship->decryptbuf[0x04];
-		compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x04 );
-		break;
-	case 0x10:
-		// Monster appearance rates
-		printf ("\nReceived rare monster appearance rates from server...\n");
-		for (ch=0;ch<8;ch++)
-		{
-			mob_rate = *(unsigned *) &ship->decryptbuf[0x06 + (ch * 4)];
-			mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
-/*
-			times_won = 0;
-			for (ch2=0;ch2<1000000;ch2++)
-			{
-				if (mt_lrand() < mob_calc)
-					times_won++;
+					break;
+				default:
+					break;
 			}
-*/
-			switch (ch)
+			break;
+		case 0x0F:
+			// Receiving drop chart
+			episode = ship->decryptbuf[0x05];
+			part = ship->decryptbuf[0x06];
+			if ( ship->decryptbuf[0x06] == 0 )
+				printf ("Received drop chart from login server...\n");
+			switch ( episode )
 			{
-			case 0x00:
-				printf ("Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				hildebear_rate = (unsigned) mob_calc;
-				break;
-			case 0x01:
-				printf ("Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				rappy_rate = (unsigned) mob_calc;
-				break;
-			case 0x02:
-				printf ("Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				lily_rate = (unsigned) mob_calc;
-				break;
-			case 0x03:
-				printf ("Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				slime_rate = (unsigned) mob_calc;
-				break;
-			case 0x04:
-				printf ("Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				merissa_rate = (unsigned) mob_calc;
-				break;
-			case 0x05:
-				printf ("Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				pazuzu_rate = (unsigned) mob_calc;
-				break;
-			case 0x06:
-				printf ("Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				dorphon_rate = (unsigned) mob_calc;
-				break;
-			case 0x07:
-				printf ("Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-				kondrieu_rate = (unsigned) mob_calc;
-				break;
+				case 0x01:
+					if ( part == 0 )
+						printf ("Episode I ..." );
+					else
+						printf (" OK!\n");
+					memcpy ( &rt_tables_ep1[(sizeof(rt_tables_ep1) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep1) >> 1 );
+					break;
+				case 0x02:
+					if ( part == 0 )
+						printf ("Episode II ..." );
+					else
+						printf (" OK!\n");
+					memcpy ( &rt_tables_ep2[(sizeof(rt_tables_ep2) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep2) >> 1 );
+					break;
+				case 0x03:
+					if ( part == 0 )
+						printf ("Episode IV ..." );
+					else
+						printf (" OK!\n");
+					memcpy ( &rt_tables_ep4[(sizeof(rt_tables_ep4) >> 3) * part], &ship->decryptbuf[0x07], sizeof (rt_tables_ep4) >> 1 );
+					break;
 			}
-			//debug ("Actual rate: %3f%%\n", ((float) times_won / 1000000) * 100);
-		}
-		printf ("\nNow ready to serve players...\n");
-		logon_ready = 1;
-		break;
-	case 0x11:
-		// Ping received
-		ship->last_ping = (unsigned) servertime;
-		*(unsigned *) &ship->encryptbuf[0x00] = *(unsigned *) &ship->decryptbuf[0x04];
-		compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x04 );
-		break;
-	case 0x12:
-		// Global announce
-		gcn = *(unsigned *) &ship->decryptbuf[0x06];
-		GlobalBroadcast ((unsigned short*) &ship->decryptbuf[0x0A]);
-		WriteGM ("GM %u made a global announcement: %s", gcn, Unicode_to_ASCII ((unsigned short*) &ship->decryptbuf[0x0A]));
-		break;
-	default:
-		// Unknown
-		break;
+			*(unsigned *) &ship->encryptbuf[0x00] = *(unsigned *) &ship->decryptbuf[0x04];
+			compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x04 );
+			break;
+		case 0x10:
+			// Monster appearance rates
+			printf ("\nReceived rare monster appearance rates from server...\n");
+			for (ch=0;ch<8;ch++)
+			{
+				mob_rate = *(unsigned *) &ship->decryptbuf[0x06 + (ch * 4)];
+				mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+	/*
+				times_won = 0;
+				for (ch2=0;ch2<1000000;ch2++)
+				{
+					if (mt_lrand() < mob_calc)
+						times_won++;
+				}
+	*/
+				switch (ch)
+				{
+					case 0x00:
+						printf ("Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						hildebear_rate = (unsigned) mob_calc;
+						break;
+					case 0x01:
+						printf ("Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						rappy_rate = (unsigned) mob_calc;
+						break;
+					case 0x02:
+						printf ("Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						lily_rate = (unsigned) mob_calc;
+						break;
+					case 0x03:
+						printf ("Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						slime_rate = (unsigned) mob_calc;
+						break;
+					case 0x04:
+						printf ("Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						merissa_rate = (unsigned) mob_calc;
+						break;
+					case 0x05:
+						printf ("Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						pazuzu_rate = (unsigned) mob_calc;
+						break;
+					case 0x06:
+						printf ("Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						dorphon_rate = (unsigned) mob_calc;
+						break;
+					case 0x07:
+						printf ("Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						kondrieu_rate = (unsigned) mob_calc;
+						break;
+				}
+				//debug ("Actual rate: %3f%%\n", ((float) times_won / 1000000) * 100);
+			}
+			printf ("\nNow ready to serve players...\n");
+			logon_ready = 1;
+			break;
+		case 0x11:
+			// Ping received
+			ship->last_ping = (unsigned) servertime;
+			*(unsigned *) &ship->encryptbuf[0x00] = *(unsigned *) &ship->decryptbuf[0x04];
+			compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x04 );
+			break;
+		case 0x12:
+			// Global announce
+			gcn = *(unsigned *) &ship->decryptbuf[0x06];
+			GlobalBroadcast ((unsigned short*) &ship->decryptbuf[0x0A]);
+			WriteGM ("GM %u made a global announcement: %s", gcn, Unicode_to_ASCII ((unsigned short*) &ship->decryptbuf[0x0A]));
+			break;
+		default:
+			// Unknown
+			break;
 	}
 }
 
