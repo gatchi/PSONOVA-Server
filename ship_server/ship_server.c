@@ -124,7 +124,8 @@ unsigned global_rare_mult = 1;
 
 // Random drop rates
 
-unsigned 	rare_box_mult = 1;
+unsigned 	rare_box_mult;
+unsigned	rare_mob_drop_mult;
 unsigned 	WEAPON_DROP_RATE,
 			ARMOR_DROP_RATE,
 			MAG_DROP_RATE,
@@ -135,7 +136,6 @@ unsigned common_rates[5] = { 0 };
 
 // Rare monster appearance rates
 
-unsigned	rare_mob_mult = 1;
 unsigned	hildebear_rate, 
 			rappy_rate,
 			lily_rate,
