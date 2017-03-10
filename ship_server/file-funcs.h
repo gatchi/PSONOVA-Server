@@ -97,6 +97,7 @@ void load_language_file()
  */
 void load_config_file()
 {
+	printf ("Loading config file...\n");
 	int config_index = 0;
 	char config_data[255];
 	unsigned ch = 0;
@@ -241,15 +242,15 @@ void load_config_file()
 						break;
 					case 0x0C:  // Rare box drop multiplier
 						rare_box_mult = atoi (config_data);
-						printf ("Rare box drop multiplier set to %d\n", rare_box_mult);
+						printf (" Rare box drop multiplier set to %d\n", rare_box_mult);
 						break;
 					case 0x0D:  // Rare mob drop multiplier
 						rare_mob_mult = atoi (config_data);
-						printf ("Rare mob drop multiplier set to %d\n", rare_mob_mult);
+						printf (" Rare mob drop multiplier set to %d\n", rare_mob_mult);
 						break;
 					case 0x0E:  // Global rare drop multiplier
 						global_rare_mult = atoi (config_data);
-						printf ("Global rare drop multiplier set to %d\n", global_rare_mult);
+						printf (" Global rare drop multiplier set to %d\n", global_rare_mult);
 						break;
 					// Rare mob rates
 					case 0x0F:
@@ -352,4 +353,5 @@ void load_config_file()
 	common_rates[3] = 100000 / TOOL_DROP_RATE;
 	common_rates[4] = 100000 / MESETA_DROP_RATE;
 	load_mask_file();
+	printf ("...finished.\n");
 }

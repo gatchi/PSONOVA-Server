@@ -2043,7 +2043,7 @@ void LogonProcessPacket (SERVER* ship)
 		case 0x10:
 			// Monster appearance rates (disabled)
 			printf ("\nReceived rare monster appearance rates from server...\n");
-			printf ("! Already have these; discarded.\n");
+			printf ("Already have these. Discarded.\n");
 			
 			printf ("\nNow ready to serve players...\n");
 			logon_ready = 1;
