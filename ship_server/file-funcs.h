@@ -246,7 +246,7 @@ void load_config_file()
 						break;
 					case 0x0D:  // Rare mob drop multiplier
 						rare_mob_mult = atoi (config_data);
-						printf (" Rare mob drop multiplier set to %d\n", rare_mob_mult);
+						printf (" Rare mob drop multiplier set to %d\n", rare_mob_drop_mult);
 						break;
 					case 0x0E:  // Global rare drop multiplier
 						global_rare_mult = atoi (config_data);
@@ -256,6 +256,7 @@ void load_config_file()
 					case 0x0F:
 						// Multiplier for rare mob appearances
 						rare_mob_mult = atoi (config_data);
+						printf (" Global rare mob multiplier set to %d\n", rare_mob_mult);
 						break;
 					case 0x10:
 						// Hildebear rate
