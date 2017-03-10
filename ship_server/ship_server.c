@@ -943,7 +943,7 @@ int main()
 	// Initialize connection to winsock
 	WSAStartup(MAKEWORD(1,1), &winsock_data);
 	
-	printf ("Loading the configuration from ship.ini ... ");
+	// Load config file
 #ifdef LOG_60
 	// Start debugging
 	debugfile = fopen ("60packets.txt", "a");
@@ -957,9 +957,8 @@ int main()
 #endif
 	mt_goodseed();
 	load_config_file();
-	printf ("OK!\n\n");
 	
-	printf ("Loading language file...\n");
+	printf ("\nLoading language file...\n");
 	load_language_file();
 	printf ("OK!\n\n");
 	
