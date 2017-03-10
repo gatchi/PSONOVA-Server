@@ -113,7 +113,7 @@ void load_config_file()
 		gets(&dp[0]);
 		exit (1);
 	}
-	else
+	else  // File exists
 	{
 		while (fgets (&config_data[0], 255, fp) != NULL)
 		{
@@ -128,7 +128,7 @@ void load_config_file()
 						config_data[ch--]  = 0x00;
 					config_data[ch] = 0;
 				}
-				switch (config_index)
+				switch (config_index)  // Parse the lines
 				{
 					case 0x00:
 						// Server IP address
@@ -220,6 +220,7 @@ void load_config_file()
 						shipEvent = (unsigned char) atoi (&config_data[0]);
 						PacketDA[0x04] = shipEvent;
 						break;
+					// Item drop rates
 					case 0x07:
 						WEAPON_DROP_RATE = atoi (&config_data[0]);
 						break;
@@ -235,19 +236,93 @@ void load_config_file()
 					case 0x0B:
 						MESETA_DROP_RATE = atoi (&config_data[0]);
 						break;
-					case 0x0C:  // Rare box multiplier
+					case 0x0C:  // Rare box drop multiplier
 						rare_box_mult = atoi (config_data);
 						printf ("Rare box drop multiplier set to %d\n", rare_box_mult);
 						break;
-					case 0x0D:  // Rare mob multiplier
+					case 0x0D:  // Rare mob drop multiplier
 						rare_mob_mult = atoi (config_data);
 						printf ("Rare mob drop multiplier set to %d\n", rare_mob_mult);
 						break;
-					case 0x0E:  // Global rare multiplier
+					case 0x0E:  // Global rare drop multiplier
 						global_rare_mult = atoi (config_data);
 						printf ("Global rare drop multiplier set to %d\n", global_rare_mult);
 						break;
+					// Rare mob rates
 					case 0x0F:
+						// Hildebear rate
+						mob_rate[0] = atoi ( &config_data[0] );
+						break;
+					case 0x10:
+						// Rappy rate
+						mob_rate[1] = atoi ( &config_data[0] );
+						break;
+					case 0x11:
+						// Lily rate
+						mob_rate[2] = atoi ( &config_data[0] );
+						break;
+					case 0x12:
+						// Slime rate
+						mob_rate[3] = atoi ( &config_data[0] );
+						break;
+					case 0x13:
+						// Merissa rate
+						mob_rate[4] = atoi ( &config_data[0] );
+						break;
+					case 0x14:
+						// Pazuzu rate
+						mob_rate[5] = atoi ( &config_data[0] );
+						break;
+					case 0x15:
+						// Dorphon Eclair rate
+						mob_rate[6] = atoi ( &config_data[0] );
+						break;
+					case 0x16:
+						// Kondrieu rate (last mob rate)
+						mob_rate[7] = atoi ( &config_data[0] );
+						for (ch=0;ch<8;ch++)  // Pretty print mob rates
+						{
+							mob_rate = *(unsigned *) &ship->decryptbuf[0x06 + (ch * 4)];
+							mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+
+							switch (ch)
+							{
+								case 0x00:
+									printf ("Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									hildebear_rate = (unsigned) mob_calc;
+									break;
+								case 0x01:
+									printf ("Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									rappy_rate = (unsigned) mob_calc;
+									break;
+								case 0x02:
+									printf ("Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									lily_rate = (unsigned) mob_calc;
+									break;
+								case 0x03:
+									printf ("Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									slime_rate = (unsigned) mob_calc;
+									break;
+								case 0x04:
+									printf ("Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									merissa_rate = (unsigned) mob_calc;
+									break;
+								case 0x05:
+									printf ("Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									pazuzu_rate = (unsigned) mob_calc;
+									break;
+								case 0x06:
+									printf ("Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									dorphon_rate = (unsigned) mob_calc;
+									break;
+								case 0x07:
+									printf ("Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+									kondrieu_rate = (unsigned) mob_calc;
+									break;
+							}
+						}
+						break;
+					case 0x17:
 						EXPERIENCE_RATE = atoi (&config_data[0]);
 						if ( EXPERIENCE_RATE > 99 )
 						{
@@ -261,7 +336,7 @@ void load_config_file()
 							printf ("\n\n");
 						}
 						break;
-					case 0x10:  // NiGHTS skin support
+					case 0x18:  // NiGHTS skin support
 						ship_support_extnpc = atoi (&config_data[0]);
 						break;
 					default:
