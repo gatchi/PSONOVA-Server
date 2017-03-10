@@ -136,6 +136,7 @@ unsigned common_rates[5] = { 0 };
 
 // Rare monster appearance rates
 
+unsigned	rare_mob_mult;
 unsigned	hildebear_rate, 
 			rappy_rate,
 			lily_rate,
@@ -957,6 +958,7 @@ int main()
 	mt_goodseed();
 	load_config_file();
 	printf ("OK!\n\n");
+	
 	printf ("Loading language file...\n");
 	load_language_file();
 	printf ("OK!\n\n");

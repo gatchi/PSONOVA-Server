@@ -100,6 +100,8 @@ void load_config_file()
 	int config_index = 0;
 	char config_data[255];
 	unsigned ch = 0;
+	
+	unsigned mob_rate[8];
 
 	FILE* fp;
 
@@ -280,10 +282,13 @@ void load_config_file()
 					case 0x16:
 						// Kondrieu rate (last mob rate)
 						mob_rate[7] = atoi ( &config_data[0] );
-						for (ch=0;ch<8;ch++)  // Pretty print mob rates
+						break;
+					case 0x17:
+						// Multiplier for rare mob appearances
+						rare_mob_mult = atoi (config_data);
+						for (ch=0;ch<8;ch++)  // Calc rates and print them
 						{
-							mob_rate = *(unsigned *) &ship->decryptbuf[0x06 + (ch * 4)];
-							mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+							mob_calc = (long long)mob_rate[ch] * 0xFFFFFFFF / 100000;
 
 							switch (ch)
 							{
