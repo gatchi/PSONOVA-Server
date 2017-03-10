@@ -101,7 +101,8 @@ void load_config_file()
 	char config_data[255];
 	unsigned ch = 0;
 	
-	unsigned mob_rate[8];
+	unsigned mob_rate;
+	long long mob_calc;
 
 	FILE* fp;
 
@@ -252,82 +253,66 @@ void load_config_file()
 						break;
 					// Rare mob rates
 					case 0x0F:
-						// Hildebear rate
-						mob_rate[0] = atoi ( &config_data[0] );
-						break;
-					case 0x10:
-						// Rappy rate
-						mob_rate[1] = atoi ( &config_data[0] );
-						break;
-					case 0x11:
-						// Lily rate
-						mob_rate[2] = atoi ( &config_data[0] );
-						break;
-					case 0x12:
-						// Slime rate
-						mob_rate[3] = atoi ( &config_data[0] );
-						break;
-					case 0x13:
-						// Merissa rate
-						mob_rate[4] = atoi ( &config_data[0] );
-						break;
-					case 0x14:
-						// Pazuzu rate
-						mob_rate[5] = atoi ( &config_data[0] );
-						break;
-					case 0x15:
-						// Dorphon Eclair rate
-						mob_rate[6] = atoi ( &config_data[0] );
-						break;
-					case 0x16:
-						// Kondrieu rate (last mob rate)
-						mob_rate[7] = atoi ( &config_data[0] );
-						break;
-					case 0x17:
 						// Multiplier for rare mob appearances
 						rare_mob_mult = atoi (config_data);
-						for (ch=0;ch<8;ch++)  // Calc rates and print them
-						{
-							mob_calc = (long long)mob_rate[ch] * 0xFFFFFFFF / 100000;
-
-							switch (ch)
-							{
-								case 0x00:
-									printf ("Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									hildebear_rate = (unsigned) mob_calc;
-									break;
-								case 0x01:
-									printf ("Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									rappy_rate = (unsigned) mob_calc;
-									break;
-								case 0x02:
-									printf ("Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									lily_rate = (unsigned) mob_calc;
-									break;
-								case 0x03:
-									printf ("Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									slime_rate = (unsigned) mob_calc;
-									break;
-								case 0x04:
-									printf ("Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									merissa_rate = (unsigned) mob_calc;
-									break;
-								case 0x05:
-									printf ("Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									pazuzu_rate = (unsigned) mob_calc;
-									break;
-								case 0x06:
-									printf ("Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									dorphon_rate = (unsigned) mob_calc;
-									break;
-								case 0x07:
-									printf ("Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
-									kondrieu_rate = (unsigned) mob_calc;
-									break;
-							}
-						}
+						break;
+					case 0x10:
+						// Hildebear rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Hildebear appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						hildebear_rate = (unsigned) mob_calc;
+						break;
+					case 0x11:
+						// Rappy rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Rappy appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						rappy_rate = (unsigned) mob_calc;
+						break;
+					case 0x12:
+						// Lily rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Lily appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						lily_rate = (unsigned) mob_calc;
+						break;
+					case 0x13:
+						// Slime rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Pouilly Slime appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						slime_rate = (unsigned) mob_calc;
+						break;
+					case 0x14:
+						// Merissa rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Merissa AA appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						merissa_rate = (unsigned) mob_calc;
+						break;
+					case 0x15:
+						// Pazuzu rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Pazuzu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						pazuzu_rate = (unsigned) mob_calc;
+						break;
+					case 0x16:
+						// Dorphon Eclair rate
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Dorphon Eclair appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						dorphon_rate = (unsigned) mob_calc;
 						break;
 					case 0x17:
+						// Kondrieu rate (last mob rate)
+						mob_rate = rare_mob_mult * atoi ( &config_data[0] );
+						mob_calc = (long long)mob_rate * 0xFFFFFFFF / 100000;
+						printf (" Kondrieu appearance rate: %3f%%\n", (float) mob_rate / 1000 );
+						kondrieu_rate = (unsigned) mob_calc;
+						break;
+					case 0x18:
 						EXPERIENCE_RATE = atoi (&config_data[0]);
 						if ( EXPERIENCE_RATE > 99 )
 						{
@@ -341,7 +326,7 @@ void load_config_file()
 							printf ("\n\n");
 						}
 						break;
-					case 0x18:  // NiGHTS skin support
+					case 0x19:  // NiGHTS skin support
 						ship_support_extnpc = atoi (&config_data[0]);
 						break;
 					default:
