@@ -87,12 +87,6 @@
 #define	MALE_FLAG	64  // Bit 7
 #define	FEMALE_FLAG	128 // Bit 8
 
-// Rare rate multipliers (TODO: put in into .ini and make reload command)
-
-#define GLOBAL_RARE_MULT 1
-#define MOB_RARE_MULT 1
-#define BOX_RARE_MULT 1
-
 #include	<windows.h>
 #include	<stdio.h>
 #include	<string.h>
@@ -126,19 +120,22 @@ struct timeval select_timeout = {
 };
 
 FILE* debugfile;
+unsigned global_rare_mult = 1;
 
 // Random drop rates
 
-unsigned WEAPON_DROP_RATE,
-ARMOR_DROP_RATE,
-MAG_DROP_RATE,
-TOOL_DROP_RATE,
-MESETA_DROP_RATE,
-EXPERIENCE_RATE;
+unsigned 	rare_box_mult = 1;
+unsigned 	WEAPON_DROP_RATE,
+			ARMOR_DROP_RATE,
+			MAG_DROP_RATE,
+			TOOL_DROP_RATE,
+			MESETA_DROP_RATE,
+			EXPERIENCE_RATE;
 unsigned common_rates[5] = { 0 };
 
 // Rare monster appearance rates
 
+unsigned	rare_mob_mult = 1;
 unsigned	hildebear_rate, 
 			rappy_rate,
 			lily_rate,
