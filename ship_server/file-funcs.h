@@ -236,7 +236,7 @@ void load_config_file()
 						MESETA_DROP_RATE = atoi (&config_data[0]);
 						break;
 					case 0x0C:  // Rare box multiplier
-						rare_box_mult = atoi (config_data);
+						rare_mob_mult = atoi (config_data);
 						break;
 					case 0x0D:  // Rare mob multiplier
 						rare_box_mult = atoi (config_data);
