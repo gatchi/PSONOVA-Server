@@ -3511,11 +3511,11 @@ void Send62 (CLIENT* client)
 							rare_roll = mt_lrand();								// rare roll is random number
 							//debug ("rare_roll = %u", rare_roll );
 							
-							long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
+							long result = rare_rate * global_rare_mult * rare_mob_mult;
 							if (result < rare_rate)
 							{
 								rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
-								if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
+								if (DEBUG) printf ("Rare rate overflow!! Mob rate\n");
 							}
 							else rare_rate = result;
 						
@@ -3748,7 +3748,7 @@ void Send62 (CLIENT* client)
 								memcpy (&rare_item, &rt_table2[1], 3);
 								rare_roll = mt_lrand();
 								
-								long result = rare_rate * GLOBAL_RARE_MULT * BOX_RARE_MULT;
+								long result = rare_rate * global_rare_mult * rare_box_mult;
 								if (result < rare_rate)
 								{
 									rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)

@@ -1259,7 +1259,7 @@ void LogonProcessPacket (SERVER* ship)
 				memset ( &ship->encryptbuf[0x00], 0, 8 );
 				ship->encryptbuf[0x00] = 0x0F;
 				ship->encryptbuf[0x01] = 0x00;
-				if (GLOBAL_RARE_MULT > 1) printf ("Custom global rare drop rate set: %d\n", GLOBAL_RARE_MULT);
+				if (global_rare_mult > 1) printf ("Custom global rare drop rate set: %d\n", global_rare_mult);
 				printf ( "Requesting drop charts from server...\n");
 				compressShipPacket ( ship, &ship->encryptbuf[0x00], 4 );
 			}
