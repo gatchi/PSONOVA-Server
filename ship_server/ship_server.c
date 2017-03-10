@@ -1014,6 +1014,11 @@ int main()
 	printf ("Meseta drop rate: %03f%%\n", (float) MESETA_DROP_RATE / 1000);
 	printf ("Experience rate: %u%%\n\n", EXPERIENCE_RATE * 100);
 	
+	printf ("\nRare drop multipliers...\n");
+	printf ("Rare mob drop multiplier: %d\n", rare_mob_mult);
+	printf ("Rare box drop multiplier: %d\n", rare_box_mult);
+	printf ("Global rare drop multiplier: %d\n\n", global_rare_mult);
+	
 	ch = 0;
 	while (ch < 100000)
 	{
