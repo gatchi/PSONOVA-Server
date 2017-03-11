@@ -697,12 +697,6 @@ void Send06 (CLIENT* client)
 				readLocalGMFile();
 			}
 			
-			if ( (!strcmp ( myCommand, "reloadconfig" )) && ((client->isgm) || (playerHasRights(client->guildcard, 13))) )
-			{
-				load_config_file();
-				SendB0 ("Ship config file reloaded.", client);
-			}
-
 			if ( (!strcmp ( myCommand, "updatemasks" )) && ((client->isgm) || (playerHasRights(client->guildcard, 12))) )
 			{
 				SendB0 ("IP ban masks file reloaded.", client);
@@ -819,6 +813,12 @@ void Send06 (CLIENT* client)
 							SendToLobby ( client->lobby, 4, &warp_packet[0], sizeof (warp_packet), 0 );
 						}
 					}
+			}
+			
+			if ( (!strcmp ( myCommand, "reloadconfig" )) && ((client->isgm) || (playerHasRights(client->guildcard, 8))) )
+			{
+				load_config_file();
+				SendB0 ("Ship config file reloaded.", client);
 			}
 		}
 	}
