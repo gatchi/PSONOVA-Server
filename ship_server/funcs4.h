@@ -831,6 +831,26 @@ void Send06 (CLIENT* client)
 						SendB0 ("Usage: /setval [var] [value]", client);
 						SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
 					}
+					if (!strcmp(myArgs[0], "exp"))
+					{
+						if (myArgs[1] == NULL)
+							SendB0 ("Provide a num to set the exp rate to", client);
+						else
+						{
+							EXPERIENCE_RATE = atoi (myArgs[1]);
+							if (EXPERIENCE_RATE > 100)
+							{
+								SendB0 ("Too large -- truncated to 100", client);
+								EXPERIENCE_RATE = 100;
+							}
+							if (EXPERIENCE_RATE < 1)
+							{
+								SendB0 ("Must be a num greater than 0.\nSet to 1.", client);
+								EXPERIENCE_RATE = 1;
+							}
+							WriteGM ("GM %u (%s) has set the exp rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), EXPERIENCE_RATE*100);
+						}
+					}
 			}
 		}
 	}
