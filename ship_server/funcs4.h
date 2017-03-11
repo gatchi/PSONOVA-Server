@@ -820,6 +820,18 @@ void Send06 (CLIENT* client)
 				load_config_file();
 				SendB0 ("Ship config file reloaded.", client);
 			}
+		
+			if ( (!strcmp ( myCommand, "setval" )) && ((client->isgm) || (playerHasRights(client->guildcard, 2))) )
+			{
+				if (myCmdArgs < 1)
+					SendB0 ("You must provide at least one argument.\nType \"/setval help\" or\n\"/setval help [topic]\" for more info.", client);
+				else
+					if (!strcmp(myArgs[0], "help"))
+					{
+						SendB0 ("Usage: /setval [var] [value]", client);
+						SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
+					}
+			}
 		}
 	}
 	else
