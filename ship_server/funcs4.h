@@ -66,14 +66,16 @@ void Send06 (CLIENT* client)
 		myCmdArgs = 0;
 		myCommand = &cmdBuf[1];
 
+		// If command has any arguments
 		if ( ( i = strcspn ( &cmdBuf[1], " ," ) ) != ( strlen ( &cmdBuf[1] ) ) )
 		{
+			// count the arguments and store the addresses in myArgs char* array
 			i++;
-			cmdBuf[i++] = 0;
-			while ( ( i < commandLen ) && ( myCmdArgs < 64 ) )
+			cmdBuf[i++] = 0;  // clear command address from buffer (myCommand has it)
+			while ( ( i < commandLen ) && ( myCmdArgs < 64 ) )  // max 64 args (63?)
 			{
-				z = strcspn ( &cmdBuf[i], "," );
-				myArgs[myCmdArgs++] = &cmdBuf[i];
+				z = strcspn ( &cmdBuf[i], "," );  // length of arg
+				myArgs[myCmdArgs++] = &cmdBuf[i]; // save address of arg into myArgs
 				i += z;
 				cmdBuf[i++] = 0;
 			}
