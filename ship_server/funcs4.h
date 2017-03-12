@@ -828,12 +828,13 @@ void Send06 (CLIENT* client)
 				if (myCmdArgs < 1)
 					SendB0 ("You must provide at least one argument.\nType \"/setval help\" or\n\"/setval help [topic]\" for more info.", client);
 				else
+				{
 					if (!strcmp(myArgs[0], "help"))
 					{
-						SendB0 ("Usage: /setval [var] [value]", client);
+						SendB0 ("Usage: /setval [var],[value]", client);
 						SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
 					}
-					if (!strcmp(myArgs[0], "exp"))
+					if (!strncmp(myArgs[0], "exp", 3))
 					{
 						if (myArgs[1] == NULL)
 							SendB0 ("Provide a num to set the exp rate to", client);
@@ -851,8 +852,13 @@ void Send06 (CLIENT* client)
 								EXPERIENCE_RATE = 1;
 							}
 							WriteGM ("GM %u (%s) has set the exp rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), EXPERIENCE_RATE*100);
+							unsigned char mesg[] = "Exp is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%d%%", EXPERIENCE_RATE*100);
+							SendEE (mesg, client);
 						}
 					}
+				}
 			}
 		}
 	}
