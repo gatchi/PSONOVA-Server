@@ -1,11 +1,12 @@
 TODO
 =====
-- /setval comman
+- /setval command
   - document how command interpretation works
 - central control of item drop rates
   - document how rare drop rates work
 - restructure code layout again (src its own folder, everything else top level)
 - "Already have these.  Discarded" -> "Local override. Using values from ship.ini."
+- suppress some of the output during server startup
 - print val command
 - make email optional and account max infinite (or at least tweakable)
 - enable sending of simple mail/announcements from terminal
