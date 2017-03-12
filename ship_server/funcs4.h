@@ -834,12 +834,14 @@ void Send06 (CLIENT* client)
 						if (myArgs[1] == NULL)
 						{
 							SendB0 ("Usage: /setval [var],[value]", client);
-							SendB0 ("Args for var: help, exp, rboxd, rmobd,\nrmob", client);
+							SendB0 ("Args for var: help, exp, raremult, rmob", client);
 						}
 						else if (!strcmp(myArgs[1], "exp"))
-							SendB0 ("The rate (x100) of experience earned.", client);
+							SendB0 ("The rate (x100%) of experience earned.", client);
 						else if (!strcmp(myArgs[1], "rboxd"))
-							SendB0 ("The rate (x100) of rare item occurence\nin boxes", client);
+							SendB0 ("A multiplier (x100%) of rare item occurence\nin boxes.", client);
+						else if (!strcmp(myArgs[1], "raremult"))
+							SendB0 ("A multiplier (x100%) to be applied to\nthe drop rates of rare items.", client);
 					}
 					if (!strncmp(myArgs[0], "exp", 3))
 					{
@@ -885,6 +887,31 @@ void Send06 (CLIENT* client)
 							rare_box_mult = val;
 							WriteGM ("GM %u (%s) has set the rare item box drop rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
 							unsigned char mesg[] = "Rare item occurence rate in boxes is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%d%%", val*100);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "raremult", 6))
+					{
+						if (myArgs[1] == NULL)
+							SendB0 ("Provide a num to set the rare mob drop multiplier.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							if (val > 100)
+							{
+								SendB0 ("Too large -- truncated to 100.", client);
+								val = 100;
+							}
+							if (val < 1)
+							{
+								SendB0 ("Must be a num greater than 0.\nSet to 1.", client);
+								val = 1;
+							}
+							global_rare_mult = val;
+							WriteGM ("GM %u (%s) has set the rare item mob drop multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							unsigned char mesg[] = "Rare item drop multiplier is now ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", val*100);
 							SendEE (mesg, client);
