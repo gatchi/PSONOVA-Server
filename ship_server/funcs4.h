@@ -834,7 +834,7 @@ void Send06 (CLIENT* client)
 						if (myArgs[1] == NULL)
 						{
 							SendB0 ("Usage: /setval [var],[value]", client);
-							SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
+							SendB0 ("Args for var: help, exp, rboxd, rmobd,\nrmob", client);
 						}
 						else if (!strcmp(myArgs[1], "exp"))
 							SendB0 ("The rate (x100) of experience earned.", client);
@@ -860,6 +860,31 @@ void Send06 (CLIENT* client)
 							unsigned char mesg[] = "Exp is now ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", EXPERIENCE_RATE*100);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "rboxd", 6))
+					{
+						if (myArgs[1] == NULL)
+							SendB0 ("Provide a num to set the rare box multiplier.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							if (val > 100)
+							{
+								SendB0 ("Too large -- truncated to 100.", client);
+								val = 100;
+							}
+							if (val < 1)
+							{
+								SendB0 ("Must be a num greater than 0.\nSet to 1.", client);
+								val = 1;
+							}
+							rare_box_mult = val;
+							WriteGM ("GM %u (%s) has set the rare item box drop rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							unsigned char mesg[] = "Rare item occurence rate in boxes is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%d%%", val*100);
 							SendEE (mesg, client);
 						}
 					}
