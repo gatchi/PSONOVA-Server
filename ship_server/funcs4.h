@@ -838,6 +838,8 @@ void Send06 (CLIENT* client)
 						}
 						else if (!strcmp(myArgs[1], "exp"))
 							SendB0 ("The rate (x100) of experience earned.", client);
+						else if (!strcmp(myArgs[1], "rboxd"))
+							SendB0 ("The rate (x100) of rare item occurence\nin boxes", client);
 					}
 					if (!strncmp(myArgs[0], "exp", 3))
 					{
