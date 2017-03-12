@@ -863,6 +863,7 @@ void Send06 (CLIENT* client)
 								EXPERIENCE_RATE = 1;
 							}
 							WriteGM ("GM %u (%s) has set the exp rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), EXPERIENCE_RATE*100);
+							SendB0 ("New value set.", client);
 							unsigned char mesg[] = "Exp is increased by ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", EXPERIENCE_RATE*100);
@@ -913,6 +914,7 @@ void Send06 (CLIENT* client)
 							}
 							global_rare_mult = val;
 							WriteGM ("GM %u (%s) has set the rare item drop multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							SendB0 ("New value set.", client);
 							unsigned char mesg[] = "Chance to get a rare item is increased by ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", val*100);
@@ -938,6 +940,7 @@ void Send06 (CLIENT* client)
 							}
 							rare_mob_mult = val;
 							WriteGM ("GM %u (%s) has set the rare mob multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							SendB0 ("New value set.", client);
 							unsigned char mesg[] = "Chance to encounter a rare monster is increased by ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", val*100);
