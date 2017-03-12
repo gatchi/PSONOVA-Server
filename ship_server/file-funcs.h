@@ -245,7 +245,7 @@ void load_config_file()
 						printf (" Rare box drop multiplier set to %d\n", rare_box_mult);
 						break;
 					case 0x0D:  // Rare mob drop multiplier
-						rare_mob_mult = atoi (config_data);
+						rare_mob_drop_mult = atoi (config_data);
 						printf (" Rare mob drop multiplier set to %d\n", rare_mob_drop_mult);
 						break;
 					case 0x0E:  // Global rare drop multiplier
