@@ -1876,10 +1876,7 @@ void CommandD9 (CLIENT* client)
 	*(g++) = 0x0000;
 }
 
-
-void AddGuildCard (unsigned myGC, unsigned friendGC, unsigned char* friendName, 
-				   unsigned char* friendText, unsigned char friendSecID, unsigned char friendClass,
-				   SERVER* ship)
+void AddGuildCard (unsigned myGC, unsigned friendGC, unsigned char* friendName, unsigned char* friendText, unsigned char friendSecID, unsigned char friendClass, SERVER* ship)
 {
 	// Instruct the logon server to add the guild card
 
@@ -1946,7 +1943,6 @@ void SortGuildCard (CLIENT* client, SERVER* ship)
 	*(unsigned*) &ship->encryptbuf[0x0A] = *(unsigned*) &client->decryptbuf[0x0C];
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x10 );
 }
-
 
 void CommandE8 (CLIENT* client)
 {
@@ -2102,7 +2098,6 @@ void Command81 (CLIENT* client, SERVER* ship)
 	*(unsigned*) &ship->encryptbuf[0x45E] = client->character.teamID;
 	compressShipPacket ( ship, &ship->encryptbuf[0x00], 0x462 );
 }
-
 
 void CreateTeam (unsigned short* teamname, unsigned guildcard, SERVER* ship)
 {
@@ -2447,7 +2442,6 @@ void CommandEA (CLIENT* client, SERVER* ship)
 		}
 	}
 }
-
 
 void ShowArrows (CLIENT* client, int to_all)
 {
@@ -3127,7 +3121,6 @@ long CalculateChecksum(void* data,unsigned long size)
     }
     return (cs ^ 0xFFFFFFFF);
 }
-
 
 void LoadBattleParam (BATTLEPARAM* dest, const char* filename, unsigned num_records, long expected_checksum)
 {
