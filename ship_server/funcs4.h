@@ -1,4 +1,5 @@
-// Chat
+/* Chat commands
+ */
 void Send06 (CLIENT* client)
 {
 	FILE* fp;
@@ -19,22 +20,24 @@ void Send06 (CLIENT* client)
 	writeData = 0;
 	fp = NULL;
 
+	// Player must be in lobby
 	if (!client->lobby)
 		return;
+	l = client->lobby;  // Save lobby info
 
-	l = client->lobby;
-
+	// Packet size cannot be larger than 0x100
+	// Why?  Who knows
 	pktsize = *(unsigned short*) &client->decryptbuf[0x00];
-
 	if (pktsize > 0x100)
 		return;
 
-	memset (&chatBuf[0x00], 0, 0x0A);
-
+	memset (&chatBuf[0x00], 0, 0x0A);  // Global variable of size 4000, but only zero out the first 0x0A
 	chatBuf[0x02] = 0x06;
 	chatBuf[0x0A] = client->clientID;
 	*(unsigned *) &chatBuf[0x0C] = client->guildcard;
 	chatsize = 0x10;
+	
+	// Add character name to chatbuf?
 	n = (unsigned short*) &client->character.name[4];
 	for (ch=0;ch<10;ch++)
 	{
@@ -44,25 +47,29 @@ void Send06 (CLIENT* client)
 		chatsize += 2;
 		n++;
 	}
+	
+	// Add some default values i guess
 	chatBuf[chatsize++] = 0x09;
 	chatBuf[chatsize++] = 0x00;
 	chatBuf[chatsize++] = 0x09;
 	chatBuf[chatsize++] = 0x00;
+	
 	n = (unsigned short*) &client->decryptbuf[0x12];
-	if ((*(n+1) == 0x002F) && (*(n+2) != 0x002F))
+	if ((*(n+1) == 0x002F) && (*(n+2) != 0x002F))  // Command parsing code in here
 	{
-		commandLen = 0;
+		commandLen = 0;  // Initialize commandLen... not a loop so lol
 
 		for (ch=0;ch<(pktsize - 0x14);ch+= 2)
 		{
+			// Until you reach a 0, count the command length
+			
 			if (client->decryptbuf[(0x14+ch)] != 0x00)
-				cmdBuf[commandLen++] = client->decryptbuf[(0x14+ch)];
+				cmdBuf[commandLen++] = client->decryptbuf[(0x14+ch)];  // Anotehr global lvariable, also size of 4000
 			else
 				break;
 		}
 
 		cmdBuf[commandLen] = 0;
-
 		myCmdArgs = 0;
 		myCommand = &cmdBuf[1];
 
@@ -81,9 +88,8 @@ void Send06 (CLIENT* client)
 			}
 		}
 
-		if ( commandLen )
+		if ( commandLen )  // If a command was entered
 		{
-
 			if ( !strcmp ( myCommand, "debug" ) )
 				writeData = 1;
 
