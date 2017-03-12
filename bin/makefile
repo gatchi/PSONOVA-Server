@@ -29,6 +29,9 @@ login: login_server.o md5.o $(LOGIN_H)
 ship: mtwist.o ship_server.o $(SHIP_H)
 	$(CC) -o $@ mtwist.o ship_server.o $(WINSOCK)
 
+ship.d: ship_server.d.o mtwist.o $(SHIP_H)
+	$(CC) -o $@ $< $(WINSOCK) mtwist.o
+
 make_key: mtwist.o make_key.o
 	$(CC) -o $@ $^ $(MYSQL)
 
@@ -45,6 +48,9 @@ login_server.o: ../$$*/$$*.c $(LOGIN_H)
 
 ship_server.o: ../$$*/$$*.c $(SHIP_H)
 	$(CC) -c $(INCLUDES) $<
+
+ship_server.d.o: ../ship_server/ship_server.c $(SHIP_H)
+	$(CC) -g -c -o ship_server.d.o $(INCLUDES) $<
 
 %.o: ../$$*/%.c
 	$(CC) -c $(INCLUDES) $<
