@@ -826,24 +826,29 @@ void Send06 (CLIENT* client)
 			if ( (!strcmp ( myCommand, "setval" )) && ((client->isgm) || (playerHasRights(client->guildcard, 2))) )
 			{
 				if (myCmdArgs < 1)
-					SendB0 ("You must provide at least one argument.\nType \"/setval help\" or\n\"/setval help [topic]\" for more info.", client);
+					SendB0 ("You must provide at least one argument.\nType \"/setval help\" or\n\"/setval help,[topic]\" for more info.", client);
 				else
 				{
 					if (!strcmp(myArgs[0], "help"))
 					{
-						SendB0 ("Usage: /setval [var],[value]", client);
-						SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
+						if (myArgs[1] == NULL)
+						{
+							SendB0 ("Usage: /setval [var],[value]", client);
+							SendB0 ("Args for var: help, exp, ritemd, rmobd,\nrmob", client);
+						}
+						else if (!strcmp(myArgs[1], "exp"))
+							SendB0 ("The rate (x100) of experience earned.", client);
 					}
 					if (!strncmp(myArgs[0], "exp", 3))
 					{
 						if (myArgs[1] == NULL)
-							SendB0 ("Provide a num to set the exp rate to", client);
+							SendB0 ("Provide a num to set the exp rate to.", client);
 						else
 						{
 							EXPERIENCE_RATE = atoi (myArgs[1]);
 							if (EXPERIENCE_RATE > 100)
 							{
-								SendB0 ("Too large -- truncated to 100", client);
+								SendB0 ("Too large -- truncated to 100.", client);
 								EXPERIENCE_RATE = 100;
 							}
 							if (EXPERIENCE_RATE < 1)
