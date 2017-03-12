@@ -839,13 +839,15 @@ void Send06 (CLIENT* client)
 						else if (!strcmp(myArgs[1], "exp"))
 							SendB0 ("The rate (x100%) of experience earned.", client);
 						else if (!strcmp(myArgs[1], "rboxd"))
-							SendB0 ("A multiplier (x100%) of rare item occurence\nin boxes.", client);
+							SendB0 ("A multiplier of rare item occurence\nin boxes.", client);
 						else if (!strcmp(myArgs[1], "raremult"))
-							SendB0 ("A multiplier (x100%) to be applied to\nthe drop rates of rare items.", client);
+							SendB0 ("A multiplier to be applied to\nthe drop rates of rare items.", client);
+						else if (!strcmp(myArgs[1], "raremult"))
+							SendB0 ("A multiplier to be applied to\nthe occurence rate of rare mobs.", client);
 					}
 					if (!strncmp(myArgs[0], "exp", 3))
 					{
-						if (myArgs[1] == NULL)
+						if (myCmdArgs < 2)
 							SendB0 ("Provide a num to set the exp rate to.", client);
 						else
 						{
@@ -861,7 +863,7 @@ void Send06 (CLIENT* client)
 								EXPERIENCE_RATE = 1;
 							}
 							WriteGM ("GM %u (%s) has set the exp rate to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), EXPERIENCE_RATE*100);
-							unsigned char mesg[] = "Exp is now ";
+							unsigned char mesg[] = "Exp is increased by ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", EXPERIENCE_RATE*100);
 							SendEE (mesg, client);
@@ -869,7 +871,7 @@ void Send06 (CLIENT* client)
 					}
 					if (!strncmp(myArgs[0], "rboxd", 6))
 					{
-						if (myArgs[1] == NULL)
+						if (myCmdArgs < 2)
 							SendB0 ("Provide a num to set the rare box multiplier.", client);
 						else
 						{
@@ -892,10 +894,10 @@ void Send06 (CLIENT* client)
 							SendEE (mesg, client);
 						}
 					}
-					if (!strncmp(myArgs[0], "raremult", 6))
+					if (!strncmp(myArgs[0], "raremult", 8))
 					{
-						if (myArgs[1] == NULL)
-							SendB0 ("Provide a num to set the rare mob drop multiplier.", client);
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a num to set the rare drop multiplier.", client);
 						else
 						{
 							int val = atoi (myArgs[1]);
@@ -910,13 +912,39 @@ void Send06 (CLIENT* client)
 								val = 1;
 							}
 							global_rare_mult = val;
-							WriteGM ("GM %u (%s) has set the rare item mob drop multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
-							unsigned char mesg[] = "Rare item drop multiplier is now ";
+							WriteGM ("GM %u (%s) has set the rare item drop multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							unsigned char mesg[] = "Chance to get a rare item is increased by ";
 							int i = strlen(mesg);
 							sprintf (&mesg[i], "%d%%", val*100);
 							SendEE (mesg, client);
 						}
 					}
+					if (!strncmp(myArgs[0], "rmob", 4))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a num to set the rare mob multiplier.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							if (val > 100)
+							{
+								SendB0 ("Too large -- truncated to 100.", client);
+								val = 100;
+							}
+							if (val < 1)
+							{
+								SendB0 ("Must be a num greater than 0.\nSet to 1.", client);
+								val = 1;
+							}
+							rare_mob_mult = val;
+							WriteGM ("GM %u (%s) has set the rare mob multiplier to %d%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val*100);
+							unsigned char mesg[] = "Chance to encounter a rare monster is increased by ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%d%%", val*100);
+							SendEE (mesg, client);
+						}
+					}
+					
 				}
 			}
 		}
