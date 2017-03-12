@@ -2,9 +2,11 @@ TODO
 =====
 - /setval command
   - start with exp rate, global rare drop mult, and rare mob mult
+  - document how command interpretation works
 - central control of item drop rates
   - document how rare drop rates work
 - restructure code layout again (src its own folder, everything else top level)
+- "Already have these.  Discarded" -> "Local override. Using values from ship.ini."
 - make email optional and account max infinite (or at least tweakable)
 - enable sending of simple mail/announcements from terminal
 - label commands and sends and packets
@@ -17,10 +19,12 @@ TODO
 
 Features
 --------
+- better ship reconnect
 - equip everything command
 
 Bugs
 ----
+- buffer overflow in chat commands?
 - dex on HUcaseals does nothing?
 - cant open trade window
   - trade window can be prepared and sent but not received.
@@ -28,3 +32,6 @@ Bugs
 - accound add bug: doesnt output proper mysql error when wrong database is selected
 - bug when shipkey.bin existts and matches login shipkey.bin but doesnt match the entry in the sql database (no entry) (login drops ship server repeatedly, as if timing out, no good error messages, no authentication error messages) (soly says check out LoginProcessPacket)
 
+Fun
+---
+- stock ticker
