@@ -3515,7 +3515,7 @@ void Send62 (CLIENT* client)
 							if (result < rare_rate)
 							{
 								rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
-								if (DEBUG) printf ("Rare rate overflow!! Mob rate\n");
+								if (DEBUG) printf ("Rare item rate overflow!! Mob drop rate\n");
 							}
 							else rare_rate = result;
 						
@@ -3752,7 +3752,7 @@ void Send62 (CLIENT* client)
 								if (result < rare_rate)
 								{
 									rare_rate = 0xFFFF;  // if overflow, set to max value (this shouldnt happen like, ever)
-									if (DEBUG) printf ("Rare rate overflow!! Box rate\n");
+									if (DEBUG) printf ("Rare item rate overflow!! Box rate\n");
 								}
 								else rare_rate = result;
 								
