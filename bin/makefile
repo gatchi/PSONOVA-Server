@@ -1,9 +1,14 @@
 # Bin Makefile
 
+ifeq ($(OS),Windows_NT) 
+    MYSQL = -L../mysql/lib -llibmysql
+else
+    MYSQL = -lmysqlclient
+endif
+
 CC = gcc
 INCLUDES = -I../md5/include -I../mysql/include -I../prs
 WINSOCK = -lws2_32
-MYSQL = -L../mysql/lib -llibmysql
 SHIP_DIR = ../ship_server
 HEADERS = $(PATCH_H) $(LOGIN_H) $(SHIP_H)
 PATCH_H = ../patch_server/resource.h
