@@ -7,7 +7,6 @@ TODO
 - restructure code layout again (src its own folder, everything else top level)
 - "Already have these.  Discarded" -> "Local override. Using values from ship.ini."
 - suppress some of the output during server startup
-- print val command
 - make email optional and account max infinite (or at least tweakable)
 - enable sending of simple mail/announcements from terminal
 - label commands and sends and packets
@@ -16,10 +15,16 @@ TODO
 - add json generation for server settings
   - keep ini files for compatibility (and speed of setup), use JSONs for settings changes
 - make localgms.ini more user friendly
-- add sample inis and such to the bin category (or rename to "install" or something)
+
+Account Add
+-----------
+- can find teth.ini regardless where its called
+- email is optional
+- more than one account per email allowed
 
 Features
 --------
+- print val command
 - better ship reconnect
 - GM print values command
 - equip everything command
@@ -28,6 +33,7 @@ Bugs
 ----
 - buffer overflow in chat commands?
 - dex on HUcaseals does nothing?
+- blue merge turns into zonda merge post logout
 - cant open trade window
   - trade window can be prepared and sent but not received.
 - visual bug for mob dropped items that have a grind on them showing +66, +280 etc.  visual bug disappears after theyve been picked up.
