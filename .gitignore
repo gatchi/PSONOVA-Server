@@ -1,3 +1,4 @@
 *.o
 admin-client
 *.d
+*.exe
