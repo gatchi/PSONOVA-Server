@@ -11,6 +11,7 @@ Important differences:
 
 Installation
 ------------
-Pre-built binaries (32-bit) are available in the bin folder.  Follow [these instructions](https://www.pioneer2.net/community/threads/tethealla-server-setup-instructions.1/) for setup.
+Download the server folder and follow [these instructions](https://www.pioneer2.net/community/threads/tethealla-server-setup-instructions.1/).
 
-If you want to build your own binaries, just run "make" in the src directory or use VS.
+If you want to build your own binaries, download the whole repo and run "make" in the top level directory, or use VS.
+The binaries will automatically be copied into your local copy of the server folder.  Follow the instructions above as normal.
