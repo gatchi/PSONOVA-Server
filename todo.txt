@@ -1,7 +1,5 @@
 TODO
 =====
-- central control of item drop rates
-  - document how rare drop rates work
 - "Already have these.  Discarded" -> "Local override. Using values from ship.ini."
 - suppress some of the output during server startup
 - make email optional and account max infinite (or at least tweakable)
