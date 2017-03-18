@@ -2,6 +2,7 @@
 
 ROOT_DIR = .
 SRC_DIR = src
+SERVER_DIR = server
 ifeq ($(OS),Windows_NT) 
     MYSQL = -L $(SRC_DIR)/mysql/lib -llibmysql
 else
@@ -11,9 +12,9 @@ endif
 CC = gcc
 INCLUDES = -I $(SRC_DIR)/md5/include -I $(SRC_DIR)/mysql/include -I $(SRC_DIR)/prs
 WINSOCK = -lws2_32
-LOGIN_DIR = $(ROOT_DIR)/login_patch
-SHIP_DIR = $(ROOT_DIR)/ship
-UTIL_DIR = $(ROOT_DIR)/util
+LOGIN_DIR = $(ROOT_DIR)/$(SERVER_DIR)/login
+SHIP_DIR = $(ROOT_DIR)/$(SERVER_DIR)/ship
+UTIL_DIR = $(ROOT_DIR)/$(SRC_DIR)/util
 SHIP_SRC_DIR = $(SRC_DIR)/ship_server
 HEADERS = $(PATCH_H) $(LOGIN_H) $(SHIP_H)
 PATCH_H = $(SRC_DIR)/patch_server/resource.h
