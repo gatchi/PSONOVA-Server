@@ -1,6 +1,5 @@
 TODO
 =====
-- /setval command
 - central control of item drop rates
   - document how rare drop rates work
 - restructure code layout again (src its own folder, everything else top level)
