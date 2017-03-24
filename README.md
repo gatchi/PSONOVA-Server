@@ -5,9 +5,10 @@ Indirect fork of psobb-tethealla.
 Mostly the same, but with some fixes here and there.
 
 Important differences:
-- runs on Linux via Wine if compiled on Windows or Mingw,
-- can be built with just gcc
+- can run on Linux (Wine)
+- can be compiled with only gcc
 - DAT version not supported (MySQL only)
+- extra comments for clarity
 
 Installation
 ------------
