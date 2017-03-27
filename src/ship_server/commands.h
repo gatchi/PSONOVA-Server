@@ -956,6 +956,173 @@ void Send06 (CLIENT* client)
 					
 				}
 			}
+			
+			if ( (!strcmp ( myCommand, "setrare" )) && ((client->isgm) || (playerHasRights(client->guildcard, 2))) )
+			{
+				if (myCmdArgs < 1)
+				{
+					SendB0 ("Provide a mob and a rate, with those\ntwo values separated by a comma.", client);
+					SendB0 ("Type \"\\setrare list\" for a list of settable mobs.", client);
+				}
+				else
+				{
+					if (!strncmp(myArgs[0], "list", strlen("list")))
+					{
+						SendB0 ("All, dorphon, hildebear, kondrieu, lilly,\nmerissa, pazuzu, rappy, slime.", client);
+					}
+					if (!strncmp(myArgs[0], "all", strlen("all")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							hildebear_rate = val;
+							rappy_rate = val;
+							lily_rate = val;
+							slime_rate = val;
+							merissa_rate = val;
+							pazuzu_rate = val;
+							dorphon_rate = val;
+							kondrieu_rate = val;
+							WriteGM ("GM %u (%s) has set the rare rate to all mobs to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter any rare mob is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "hildebear", strlen("hildebear")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							hildebear_rate = val;
+							WriteGM ("GM %u (%s) has set the rare hildebear rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare hildebear is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "rappy", strlen("rappy")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							rappy_rate = val;
+							WriteGM ("GM %u (%s) has set the rare rappy rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare rappy is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "lilly", strlen("lilly")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							lily_rate = val;
+							WriteGM ("GM %u (%s) has set the rare lilly rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare lilly is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "slime", strlen("slime")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							slime_rate = val;
+							WriteGM ("GM %u (%s) has set the rare slime rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare slime is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "merissa", strlen("merissa")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							merissa_rate = val;
+							WriteGM ("GM %u (%s) has set the rare merissa rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare merissa is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "pazuzu", strlen("pazuzu")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							pazuzu_rate = val;
+							WriteGM ("GM %u (%s) has set the rare pazuzu rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare pazuzu is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "dorphon", strlen("dorphon")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							dorphon_rate = val;
+							WriteGM ("GM %u (%s) has set the rare dorphon eclair rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare dorphon eclair is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+					if (!strncmp(myArgs[0], "kondrieu", strlen("kondrieu")))
+					{
+						if (myCmdArgs < 2)
+							SendB0 ("Provide a rate. Rate is basically the number divided by 1000.", client);
+						else
+						{
+							int val = atoi (myArgs[1]);
+							kondrieu_rate = val;
+							WriteGM ("GM %u (%s) has set the rare kondrieu rate to %f%%", client->guildcard, Unicode_to_ASCII((unsigned short *)&client->character.name[4]), val/10.0);
+							SendB0 ("New value set.", client);
+							unsigned char mesg[] = "Chance to encounter a rare kondrieu is now ";
+							int i = strlen(mesg);
+							sprintf (&mesg[i], "%f%%", val/10.0);
+							SendEE (mesg, client);
+						}
+					}
+				}
+			}
 		}
 	}
 	else
