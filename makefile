@@ -22,7 +22,7 @@ LOGIN_H = $(SRC_DIR)/login_server/def_structs.h
 SHIP_H = $(SHIP_SRC_DIR)/resource.h $(SHIP_SRC_DIR)/pso_crypt.h $(SHIP_SRC_DIR)/bbtable.h $(SHIP_SRC_DIR)/localgms.h \
          $(SHIP_SRC_DIR)/prs.cpp $(SHIP_SRC_DIR)/def_map.h $(SHIP_SRC_DIR)/def_block.h $(SHIP_SRC_DIR)/def_packets.h \
          $(SHIP_SRC_DIR)/def_structs.h $(SHIP_SRC_DIR)/def_tables.h $(FUNC_H)
-FUNC_H = $(SHIP_SRC_DIR)/funcs1.h $(SHIP_SRC_DIR)/funcs2.h $(SHIP_SRC_DIR)/funcs3.h $(SHIP_SRC_DIR)/funcs4.h \
+FUNC_H = $(SHIP_SRC_DIR)/funcs1.h $(SHIP_SRC_DIR)/funcs2.h $(SHIP_SRC_DIR)/funcs3.h $(SHIP_SRC_DIR)/commands.h \
          $(SHIP_SRC_DIR)/file-funcs.h $(SHIP_SRC_DIR)/load-funcs.h $(SHIP_SRC_DIR)/mag-funcs.h $(SHIP_SRC_DIR)/string-funcs.h
 
 all: account_add login char_export convert_quest convert_unitxt make_key newtable patch ship
