@@ -383,7 +383,7 @@ void WriteGM(char *fmt, ...)
 
 char character_file[255];
 
-#include "funcs4.h"
+#include "commands.h"
 
 unsigned char qpd_buffer  [PRS_BUFFER];
 unsigned char qpdc_buffer [PRS_BUFFER];
