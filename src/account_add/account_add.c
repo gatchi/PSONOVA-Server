@@ -233,12 +233,6 @@ main( int argc, char * argv[] )
 		memset (config_data, 0, 255 * sizeof (char));
 	}
 	fclose (fp);
-
-	// if (config_index = 5)
-	// {
-		// printf ("tethealla.ini seems to be corrupted.\n");
-		// return 1;
-	// }
 	
 #ifdef NO_SQL
 	num_accounts = 0;
