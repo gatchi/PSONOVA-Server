@@ -1,4 +1,6 @@
 <?php
+	/* Created by Soly (github.com/Solybum) */
+	 
 	function getCaptchaResult($ip, $response)
 	{
 		if ($response == null || strlen($response) == 0) 

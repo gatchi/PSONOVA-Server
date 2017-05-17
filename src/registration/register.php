@@ -1,4 +1,10 @@
 <?php
+	/*
+	 * PSO registration form.
+	 * Created by Soly (github.com/Solybum)
+	 * Tweaked by gatchi (github.com/gatchi) (christen.got@gmail.com)
+	 */
+	 
 	$error = false;
 	$dberror = false;
 	$registered = false;
@@ -13,7 +19,7 @@
 		}
 		else
 		{
-			$username = strtolower($_POST["username"]);
+			$username = $_POST["username"];
 		}
 		
 		if(empty($_POST["password"]))
@@ -52,7 +58,7 @@
 		else
 		{
 			// Comment to be able to skip the captcha
-			//$error = true;
+			$error = true;
 			$errorString .= "<br />Please complete the captcha.";
 		}
 		
@@ -61,7 +67,7 @@
 			require_once("mysql.php");
 			$md5str = "%s_%u_salt";
 			
-			$username = strtolower(db_escape($_POST["username"]));
+			$username = db_escape($_POST["username"]);
 			$password = db_escape($_POST["password"]);
 			$mail = db_escape($_POST["email"]);
 			$regtime = time() / 3600;
@@ -75,7 +81,7 @@
 			{
 				$dberror = true;
 				$dberrorString .= "<br />There was an error connecting to the database.";
-				// echo db_error();
+				echo db_error();
 			}
 			else
 			{
@@ -103,13 +109,13 @@
 			if(!false && $error == false && $dberror == false)
 			{
 				$query = sprintf("INSERT INTO account_data (username, password, email, regtime, isactive) 
-								VALUES ('%s','%s','%s','%u','%u')", $username, $md5password, $email, $regtime, 0);
+								VALUES ('%s','%s','%s','%u','%u')", $username, $md5password, $email, $regtime, 1);
 				$result = db_query($query);
 				if(false || $result == false)
 				{
 					$dberror = true;
 					$dberrorString .= "<br />Registration of new account failed.";
-					// echo db_error();
+					echo db_error();
 				}
 				else
 				{
@@ -143,16 +149,13 @@
 				<h2>Thank you for registering</h2>
 				<p>These are your account details</p>
 				<p>Username: <?php echo $username; ?><br />E-mail: <?php echo $email ?></p>
-				<br />
-				<p>Please activate your account with the link sent to your e-mail address.</p>
-				<p>Take me <a href="index.php">home</a></p>
 				<?php
 			}
 			else
 			{
 				?>
 				<h2>Register an account</h2>
-				<p>Complete the following details. The captcha is disabled for this example</p>
+				<p>Complete the following details.</p>
 				<?php
 					if($dberror == true)
 					{

@@ -1,4 +1,6 @@
 <?php
+	/* Created by Soly (github.com/Solybum) */
+	
 	function db_connect() 
 	{
 		$hostname = "localhost";
