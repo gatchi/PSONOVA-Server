@@ -27,6 +27,16 @@
 			$error = true;
 			$errorString .= "<br />Enter a password.";
 		}
+		else if(empty($_POST["passcheck"]))
+		{
+			$error = true;
+			$errorString .= "<br />Retype your password.";
+		}
+		else if($_POST["password"] !== $_POST["passcheck"])
+		{
+			$error = true;
+			$errorString .= "<br />Passwords do not match.";
+		}
 		
 		if(empty($_POST["email"]))
 		{
@@ -147,15 +157,19 @@
 			{
 				?>
 				<h2>Thank you for registering</h2>
-				<p>These are your account details</p>
-				<p>Username: <?php echo $username; ?><br />E-mail: <?php echo $email ?></p>
 				<?php
 			}
 			else
 			{
 				?>
 				<h2>Register an account</h2>
-				<p>Complete the following details.</p>
+				<p>Register an account here to start playing on the PSO Revalations server.</p>
+				<p>Rules of conduct may be found <a href="http://psobbn.boards.net/thread/58/rules-forums-game-server">here</a>.</p>
+				<p>
+					Usernames and passwords are <b>case-sensitive</b>.
+					<br/>
+					Email is used for contact only; no email will be sent upon registration.
+				</p>
 				<?php
 					if($dberror == true)
 					{
@@ -179,19 +193,23 @@
 		<div class="form_settings">
 			<p>
 				<span>Username</span>
-				<input type="text" name="username" title="username" placeholder="Enter your username" value="<?php echo $username;?>" />
+				<input type="text" name="username" title="username" placeholder="" value="<?php echo $username;?>" />
 			</p>
 			<p>
 				<span>E-mail</span>
-				<input type="email" name="email" title="email" placeholder="Enter your e-mail" value="<?php echo $email;?>" />
+				<input type="email" name="email" title="email" placeholder="" value="<?php echo $email;?>" />
 			</p>
 			<p>
 				<span>Password</span>
-				<input type="password" name="password" title="password" placeholder="Enter your new password" value="" />
+				<input type="password" name="password" title="password" placeholder="" value="" />
+			</p>
+			<p>
+				<span>Re-type password</span>
+				<input type="password" name="passcheck" title="password" placeholder="" value="" />
 			</p>
 			<p>
 				<span>Captcha</span>
-				<span class="g-recaptcha" data-theme="dark" data-sitekey="6LeGvw4TAAAAAMNu6fDmg55XM37b8UdYfml08X9P"></span>
+				<span class="g-recaptcha" data-theme="dark" data-sitekey="6LdYtiEUAAAAADurN-Q4ZuYtEfOkRCfId7yMD80R"></span>
 				<!-- Your public key in that field -->
 			</p>
 			<p>
