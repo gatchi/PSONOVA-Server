@@ -1,7 +1,9 @@
 TODO
 =====
+- setup git on g platform, sync
+
 - suppress some of the output during server startup
-- make email optional and account max infinite (or at least tweakable)
+  - re-disable patch server error "Could not read data from client\Socket Error 0"
 - enable sending of simple mail/announcements from terminal
 - label commands and sends and packets
 - replace libraries with sources with DLLs or something (make DLLs?)
@@ -10,11 +12,21 @@ TODO
   - keep ini files for compatibility (and speed of setup), use JSONs for settings changes
 - make localgms.ini more user friendly
 
+! Website 
+---------
+- double password fields
+- password change utility
+- item tweak utility
+
 Account Add
 -----------
 - can find teth.ini regardless where its called
 - email is optional
 - more than one account per email allowed
+
+Ship
+----
+- notifies me when the ship goes down
 
 Features
 --------
