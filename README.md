@@ -14,5 +14,7 @@ Installation
 ------------
 Download the server folder and follow [these instructions](https://www.pioneer2.net/community/threads/tethealla-server-setup-instructions.1/).
 
+Building
+--------
 If you want to build your own binaries, download the whole repo and run "make" in the top level directory, or use VS.
 The binaries will automatically be copied into your local copy of the server folder.  Follow the instructions above as normal.
