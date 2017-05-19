@@ -18,3 +18,4 @@ Building
 --------
 If you want to build your own binaries, download the whole repo and run "make" in the top level directory, or use VS.
 The binaries will automatically be copied into your local copy of the server folder.  Follow the instructions above as normal.
+NOTE: This is required for the Account Add utility if you are planning to use it on Linux, as the Windows binary for it is flaky under Wine.  Account Add is the only program that can be built in Linux thus far, everything else must be built on Windows and ran in Wine.
