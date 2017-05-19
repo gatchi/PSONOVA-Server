@@ -14,7 +14,6 @@ TODO
 
 ! Website 
 ---------
-- double password fields
 - password change utility
 - item tweak utility
 
