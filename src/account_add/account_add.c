@@ -1,11 +1,10 @@
 /****************************************************************/
 /*	Author:	Sodaboy                                             */
+/*  Modified by: gatchi (github.com/gatchi/PSONOVA-Server)      */
 /*	Date:	07/22/2008                                          */
 /*	accountadd.c :  Adds an account to the Tethealla PSO        */
-/*			server...                                           */
-/*																*/
-/*	History:                                                    */
-/*		07/22/2008  TC  First version...                        */
+/*			server.                                             */
+/*                                                              */
 /****************************************************************/
 
 //#define NO_SQL
