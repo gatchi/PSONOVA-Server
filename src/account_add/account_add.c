@@ -389,20 +389,6 @@ main( int argc, char * argv[] )
 #endif
 		if (!num_rows) // If not in the database already
 		{
-			// Theres no hiding of characters so theres no reason to have to type twice
-			// printf ("Verify e-mail address: ");
-			// scanf ("%s", inputstr );
-			// memcpy (&email_check[0], &inputstr[0], strlen (inputstr)+1 );
-			// pw_same = 1;
-			// for (ch=0;ch<strlen(email);ch++)
-			// {
-				// if (email[ch] != email_check[ch])
-					// pw_same = 0;
-			// }
-			// if (pw_same)
-				// pw_ok = 1;
-			// else
-				// printf ("The input e-mail addresses did not match.\n");
 			pw_ok = 1;
 		}
 	}
