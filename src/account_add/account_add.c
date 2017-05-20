@@ -34,7 +34,7 @@ void MDString (inString, outString)
 char *inString;
 char *outString;
 {
-	unsigned char c;
+  unsigned char c;
   MD5_CTX mdContext;
   unsigned int len = strlen (inString);
 
@@ -135,13 +135,6 @@ void LoadDataFile ( const char* filename, unsigned* count, void** data, unsigned
 	}
 	printf ("done!\n");
 }
-
-
-/********************************************************
-**
-**		main  :-
-**
-********************************************************/
 
 int
 main( int argc, char * argv[] )
@@ -323,20 +316,6 @@ main( int argc, char * argv[] )
 		if ( ( strlen (inputstr ) < 17 ) || ( strlen (inputstr) < 8 ) )
 		{
 			memcpy (&password[0], &inputstr[0], 17 );
-			// Theres no hiding of characters so theres no reason to have to type twice
-			// printf ("Verify password: ");
-			// scanf ("%s", inputstr );
-			// memcpy (&password_check[0], &inputstr[0], 17 );
-			// pw_same = 1;
-			// for (ch=0;ch<16;ch++)
-			// {
-				// if (password[ch] != password_check[ch])
-					// pw_same = 0;
-			// }
-			// if (pw_same)
-				// pw_ok = 1;
-			// else
-				// printf ("The input passwords did not match.\n");
 			pw_ok = 1;
 		}
 		else
@@ -397,7 +376,7 @@ main( int argc, char * argv[] )
 #ifndef NO_SQL
 	// Check to see if any accounts already registered in the database at all.
 	sprintf (&myQuery[0], "SELECT * from account_data" );
-	//printf ("Executing MySQL query: %s\n", myQuery );
+	
 	// Check to see if the e-mail address has already been registered to an account.
 	if ( ! mysql_query ( myData, &myQuery[0] ) )
 	{
@@ -414,19 +393,15 @@ main( int argc, char * argv[] )
 #endif
 	reg_seconds = (unsigned) regtime / 3600L;
 	ch = strlen (&password[0]);
-	//_itoa (reg_seconds, &config_data[0], 10 );  // outdated and windows only i think, instead use:
 	sprintf (&config_data[0], "%d", reg_seconds);
-	//Throw some salt in the game ;)
 	sprintf (&password[ch], "_%s_salt", &config_data[0] );
-	//printf ("New password = %s\n", password );
 	MDString (&password[0], &MDBuffer[0] );
 	for (ch=0;ch<16;ch++)
 		sprintf (&md5password[ch*2], "%02x", (unsigned char) MDBuffer[ch]);
 	md5password[32] = 0;
 	if (!num_rows)
 	{
-		// First account created is always GM.
-		guildcard_number = 42000001;
+		guildcard_number = 42000001;	// First account created is always GM.
 #ifdef NO_SQL
 		account_data[num_accounts] = malloc ( sizeof ( L_ACCOUNT_DATA ) );
 		memset (account_data[num_accounts], 0, sizeof ( L_ACCOUNT_DATA ) );
@@ -470,7 +445,6 @@ main( int argc, char * argv[] )
 #endif
 	}
 	// Insert into table.
-	//printf ("Executing MySQL query: %s\n", myQuery );
 #ifdef NO_SQL
 	printf ("Account added.");
 #endif
