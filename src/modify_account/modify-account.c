@@ -12,7 +12,7 @@
 #include <md5.h>
 
 #ifdef _WIN32
-#include	<windows.h>
+#include <windows.h>
 #endif
 #include <mysql.h>
 
@@ -135,7 +135,7 @@ int main()
 		printf ("Invalid username.");
 		return 1;
 	}
-	char username[16];  // use this for value changes via MySQL statments
+	char username[16];  // Use this for value changes via MySQL statments
 	memcpy (username, inputstr, strlen (inputstr) + 1);
 	
 	// Query database for account
@@ -190,6 +190,6 @@ int main()
 		printf ("Couldn't query the database.\n");
 		return 1;
 	}
-	printf (mysql_info (myData));  // use this to see how many rows were changed by the UPDATE
+	printf (mysql_info (myData));  // Use this to see how many rows were changed by the UPDATE
 	mysql_close (myData);
 }
