@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <md5.h>
 
 #ifdef _WIN32
 #include	<windows.h>
@@ -15,6 +17,28 @@
 #include <mysql.h>
 
 #define STR_LEN 80  // Max length of strings in psonova.ini (tethealla.ini)
+#define IN_LEN  16  // Max length of input strings
+
+/*
+ * Computes the message digest for string inString.
+ * Prints out message digest, a space, the string (in quotes) and a
+ * carriage return.
+ */
+void MDString (char * inString, char * outString)
+{
+	unsigned char c;
+	MD5_CTX mdContext;
+	unsigned int len = strlen (inString);
+
+	MD5Init (&mdContext);
+	MD5Update (&mdContext, inString, len);
+	MD5Final (&mdContext);
+	for (c=0;c<16;c++)
+	{
+		*outString = mdContext.digest[c];
+		outString++;
+	}
+}
 
 int main()
 {
@@ -106,13 +130,66 @@ int main()
 	scanf ("%s", inputstr );
 	
 	// Protect against buffer overflows
-	if (strlen (inputstr) > 16)
+	if (strlen (inputstr) > IN_LEN)
 	{
 		printf ("Invalid username.");
 		return 1;
 	}
+	char username[16];  // use this for value changes via MySQL statments
+	memcpy (username, inputstr, strlen (inputstr) + 1);
 	
-	// Does account exist?
-	sprintf (&myQuery[0], "SELECT * from account_data WHERE username='%s'", inputstr);
+	// Query database for account
+	sprintf (myQuery, "SELECT * from account_data WHERE username='%s'", inputstr);
+	int error = mysql_query (myData, myQuery);
+	if (error)
+	{
+		printf ("Couldn't query the database.");
+		return 1;
+	}
 	
+	// If account doesn't exist, exit
+	MYSQL_RES * myResult = mysql_store_result (myData);
+	int num_rows = (int) mysql_num_rows (myResult);
+	if (num_rows == 0)
+	{
+		printf ("Account doesn't exist.");
+		return 1;
+	}
+	else
+		printf ("Account found.\n");
+	
+	// Prompt for new password (blank if unchanged)
+	printf ("New password: ");
+	memset (inputstr, 0, STR_LEN * sizeof (char));
+	scanf ("%s", inputstr);
+	if (strlen (inputstr) > IN_LEN)
+	{
+		printf ("Password must be less than 17 characters long.");
+		return 1;
+	}
+	
+	// Hash password
+	time_t regtime = time (NULL);  // for salting
+	unsigned reg_seconds = (unsigned) regtime / 3600L;
+	int len = strlen (inputstr);
+	unsigned char MDBuffer[17] = {0};
+	sprintf (config_data, "%d", reg_seconds);
+	sprintf (&inputstr[len], "_%s_salt", config_data);
+	MDString (inputstr, MDBuffer);
+	int i;
+	char md5password[34] = {0};
+	for (i=0;i<16;i++)
+		sprintf (&md5password[i*2], "%02x", (unsigned char) MDBuffer[i]);
+	md5password[32] = 0;
+	
+	// Change password
+	sprintf (myQuery, "UPDATE account_data SET password = '%s' WHERE username = '%s'", md5password, username);
+	error = mysql_query (myData, myQuery);
+	if (error)
+	{
+		printf ("Couldn't query the database.\n");
+		return 1;
+	}
+	printf (mysql_info (myData));  // use this to see how many rows were changed by the UPDATE
+	mysql_close (myData);
 }
