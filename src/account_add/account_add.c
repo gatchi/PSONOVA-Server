@@ -189,7 +189,7 @@ main( int argc, char * argv[] )
 				if (config_data[len-1] == '\n')
 				{
 					config_data[len-1]  = '\0';
-					if (config_data[len-2] == '\r');
+					if (config_data[len-2] == '\r')
 						config_data[len-2] = '\0';
 				}
 			}
@@ -275,8 +275,8 @@ main( int argc, char * argv[] )
 #endif
 #ifndef NO_SQL
 			sprintf (&myQuery[0], "SELECT * from account_data WHERE username='%s'", inputstr );
+			
 			// Check to see if that account already exists.
-			//printf ("Executing MySQL query: %s\n", myQuery );
 			if ( ! mysql_query ( myData, &myQuery[0] ) )
 			{
 				myResult = mysql_store_result ( myData );
