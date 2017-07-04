@@ -1,20 +1,12 @@
 TODO
-=====
-- setup git on g platform, sync
-
+====
+- auto-restart every seven days (mysql bug)
 - suppress some of the output during server startup
   - re-disable patch server error "Could not read data from client\Socket Error 0"
 - enable sending of simple mail/announcements from terminal
-- label commands and sends and packets
-- replace libraries with sources with DLLs or something (make DLLs?)
-- make shipin port (login_server.c) configurable via text file
-- add json generation for server settings
-  - keep ini files for compatibility (and speed of setup), use JSONs for settings changes
-- make localgms.ini more user friendly
 
 ! Website 
 ---------
-- password change utility
 - item tweak utility
 
 Account Add
