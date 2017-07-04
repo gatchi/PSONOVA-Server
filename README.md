@@ -16,9 +16,10 @@ Download the server folder and follow [these instructions](https://www.pioneer2.
 
 Building
 --------
-If you want to build your own binaries, download the whole repo and run "make" in the top level directory, or use VS.
-The binaries will automatically be copied into your local copy of the server folder.  Follow the instructions above as normal.
-NOTE: This is required for the Account Add utility if you are planning to use it on Linux, as the Windows binary for it is flaky under Wine.  Account Add is the only program that can be built in Linux thus far, everything else must be built on Windows and ran in Wine.
+If you want to build your own binaries, download the whole repo and run "make" in MingGW in the top level directory.
+The binaries will be written over the binaries supplied in the "install" folder.  Follow the instructions above as normal.
+
+I would not recommend building this in a Unix environment.  I don't even think it will actually build.  Account-Add maybe, but it's been having md5 hashing issues as of late when built on Linux so i would not recommend it.  Tethealla was not written with Unix systems in mind.  However i would eventually like to get this project buildable on Linux.
 
 Wiki
 ----
