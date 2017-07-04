@@ -674,238 +674,6 @@ unsigned char hexToByte ( char* hs )
 	return (unsigned char) b;
 }
 
-void load_config_file()
-{
-	int config_index = 0;
-	char config_data[255];
-	unsigned ch;
-
-	FILE* fp;
-
-	if ( ( fp = fopen ("tethealla.ini", "r" ) ) == NULL )
-	{
-		printf ("The configuration file tethealla.ini appears to be missing.\n");
-		printf ("Hit [ENTER]");
-		gets (&dp[0]);
-		exit (1);
-	}
-	else
-		while (fgets (&config_data[0], 255, fp) != NULL)
-		{
-			if (config_data[0] != 0x23)
-			{
-				if ((config_index < 0x04) || (config_index > 0x04))
-				{
-					ch = strlen (&config_data[0]);
-					if (config_data[ch-1] == 0x0A)
-						config_data[ch--]  = 0x00;
-					config_data[ch] = 0;
-				}
-				switch (config_index)
-				{
-				case 0x00:
-					// MySQL Host
-					memcpy (&mySQL_Host[0], &config_data[0], ch+1);
-					break;
-				case 0x01:
-					// MySQL Username
-					memcpy (&mySQL_Username[0], &config_data[0], ch+1);
-					break;
-				case 0x02:
-					// MySQL Password
-					memcpy (&mySQL_Password[0], &config_data[0], ch+1);
-					break;
-				case 0x03:
-					// MySQL Database
-					memcpy (&mySQL_Database[0], &config_data[0], ch+1);
-					break;
-				case 0x04:
-					// MySQL Port
-					mySQL_Port = atoi (&config_data[0]);
-					break;
-				case 0x05:
-					// Server IP address
-					{
-						if ((config_data[0] == 0x41) || (config_data[0] == 0x61))
-						{
-							struct sockaddr_in pn_in;
-							struct hostent *pn_host;
-							int pn_sockfd, pn_len;
-							char pn_buf[512];
-							char* pn_ipdata;
-
-							printf ("\n** Determining IP address ... ");
-
-							pn_host = gethostbyname ( "www.pioneer2.net" );
-							if (!pn_host) {
-								printf ("Could not resolve www.pioneer2.net\n");
-								printf ("Hit [ENTER]");
-								gets (&dp[0]);
-								exit (1);
-							}
-
-							/* Create a reliable, stream socket using TCP */
-							if ((pn_sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-							{
-								printf ("Unable to create TCP/IP streaming socket.");
-								printf ("Hit [ENTER]");
-								gets (&dp[0]);
-								exit(1);
-							}
-
-							/* Construct the server address structure */
-							memset(&pn_in, 0, sizeof(pn_in)); /* Zero out structure */
-							pn_in.sin_family = AF_INET; /* Internet address family */
-
-							*(unsigned*) &pn_in.sin_addr.s_addr = *(unsigned *) pn_host->h_addr; /* Web Server IP address */
-
-							pn_in.sin_port = htons(80); /* Web Server port */
-
-							/* Establish the connection to the pioneer2.net Web Server ... */
-
-							if (connect(pn_sockfd, (struct sockaddr *) &pn_in, sizeof(pn_in)) < 0)
-							{
-								printf ("\nCannot connect to www.pioneer2.net!");
-								printf ("Hit [ENTER]");
-								gets (&dp[0]);
-								exit(1);
-							}
-
-							/* Process pioneer2.net's response into the serverIP variable. */
-
-							send_to_server ( pn_sockfd, HTTP_REQ );
-							pn_len = recv(pn_sockfd, &pn_buf[0], sizeof(pn_buf) - 1, 0);
-							closesocket (pn_sockfd);
-							pn_buf[pn_len] = 0;
-							pn_ipdata = strstr (&pn_buf[0], "/html");
-							if (!pn_ipdata)
-							{
-								printf ("Failed to determine IP address.\n");
-							}
-							else
-								pn_ipdata += 9;
-
-							convertIPString (pn_ipdata, strlen (pn_ipdata), 0 );
-						}
-						else
-						{
-							convertIPString (&config_data[0], ch+1, 1);
-						}
-					}
-					break;
-				case 0x06:
-					// Welcome Message
-					memcpy (&Welcome_Message[0], &config_data[0], ch+1 );
-					break;
-				case 0x07:
-					// Server Listen Port
-					serverPort = atoi (&config_data[0]);
-					break;
-				case 0x08:
-					// Max Client Connections
-					serverMaxConnections = atoi (&config_data[0]);
-					if ( serverMaxConnections > LOGIN_COMPILED_MAX_CONNECTIONS )
-					{
-						serverMaxConnections = LOGIN_COMPILED_MAX_CONNECTIONS;
-						printf ("This version of the login server has not been compiled to handle more than %u login connections.  Adjusted.\n", LOGIN_COMPILED_MAX_CONNECTIONS );
-					}
-					if (!serverMaxConnections)
-						serverMaxConnections = LOGIN_COMPILED_MAX_CONNECTIONS;
-					break;
-				case 0x09:
-					// Max Ship Connections
-					serverMaxShips = atoi (&config_data[0]);
-					if ( serverMaxShips > SHIP_COMPILED_MAX_CONNECTIONS )
-					{
-						serverMaxShips = SHIP_COMPILED_MAX_CONNECTIONS;
-						printf ("This version of the login server has not been compiled to handle more than %u ship connections.  Adjusted.\n", SHIP_COMPILED_MAX_CONNECTIONS );
-					}
-					if (!serverMaxShips)
-						serverMaxShips = SHIP_COMPILED_MAX_CONNECTIONS;
-					break;
-				case 0x0A:
-					// Override IP address (if specified, this IP will be sent out instead of your own to those who connect)
-					if ((config_data[0] > 0x30) && (config_data[0] < 0x3A))
-					{
-						override_on = 1;
-						*(unsigned *) &overrideIP[0] = *(unsigned *) &serverIP[0];
-						serverIP[0] = 0;
-						convertIPString (&config_data[0], ch+1, 1);							
-					}
-					break;
-				case 0x0B:
-					// Hildebear rate
-					mob_rate[0] = atoi ( &config_data[0] );
-					break;
-				case 0x0C:
-					// Rappy rate
-					mob_rate[1] = atoi ( &config_data[0] );
-					break;
-				case 0x0D:
-					// Lily rate
-					mob_rate[2] = atoi ( &config_data[0] );
-					break;
-				case 0x0E:
-					// Slime rate
-					mob_rate[3] = atoi ( &config_data[0] );
-					break;
-				case 0x0F:
-					// Merissa rate
-					mob_rate[4] = atoi ( &config_data[0] );
-					break;
-				case 0x10:
-					// Pazuzu rate
-					mob_rate[5] = atoi ( &config_data[0] );
-					break;
-				case 0x11:
-					// Dorphon Eclair rate
-					mob_rate[6] = atoi ( &config_data[0] );
-					break;
-				case 0x12:
-					// Kondrieu rate
-					mob_rate[7] = atoi ( &config_data[0] );
-					break;
-				case 0x13:
-					// Global GM name color
-					config_data[6] = hexToByte (&config_data[4]);
-					config_data[7] = hexToByte (&config_data[2]);
-					config_data[8] = hexToByte (&config_data[0]);
-					config_data[9]  = 0xFF;
-					globalName = *(unsigned *) &config_data[6];
-					break;
-				case 0x14:
-					// Local GM name color
-					config_data[6] = hexToByte (&config_data[4]);
-					config_data[7] = hexToByte (&config_data[2]);
-					config_data[8] = hexToByte (&config_data[0]);
-					config_data[9]  = 0xFF;
-					localName = *(unsigned *) &config_data[6];
-					break;
-				case 0x15:
-					// Normal name color
-					config_data[6] = hexToByte (&config_data[4]);
-					config_data[7] = hexToByte (&config_data[2]);
-					config_data[8] = hexToByte (&config_data[0]);
-					config_data[9]  = 0xFF;
-					normalName = *(unsigned *) &config_data[6];
-					break;
-				default:
-					break;
-				}
-				config_index++;
-			}
-		}
-		fclose (fp);
-
-	if (config_index < 0x13)
-	{
-		printf ("tethealla.ini seems to be corrupted.\n");
-		printf ("Hit [ENTER]");
-		gets (&dp[0]);
-		exit (1);
-	}
-}
-
 PLAYER * connections[LOGIN_COMPILED_MAX_CONNECTIONS];
 SHIP * ships[SHIP_COMPILED_MAX_CONNECTIONS];
 PLAYER * workConnect;
@@ -1300,6 +1068,7 @@ void SendE2 (PLAYER* client)
 		client->todc = 1;
 }
 
+// Maybe delete this?
 unsigned StringLength (const char* src)
 {
 	unsigned ch = 0;
@@ -5351,7 +5120,234 @@ main( int argc, char * argv[] )
 	memset ( &dress_flags[0], 0, sizeof (DRESSFLAG) * MAX_DRESS_FLAGS);
 
 	printf ("Loading configuration from tethealla.ini ...");
-	load_config_file();
+	int config_index = 0;
+	char config_data[255];
+	unsigned ch;
+
+	FILE* fp;
+
+	if ( ( fp = fopen ("tethealla.ini", "r" ) ) == NULL )
+	{
+		printf ("The configuration file tethealla.ini appears to be missing.\n");
+		printf ("Hit [ENTER]");
+		gets (&dp[0]);
+		exit (1);
+	}
+	else
+		while (fgets (&config_data[0], 255, fp) != NULL)
+		{
+			if (config_data[0] != 0x23)
+			{
+				if ((config_index < 0x04) || (config_index > 0x04))
+				{
+					ch = strlen (&config_data[0]);
+					if (config_data[ch-1] == 0x0A)
+						config_data[ch--]  = 0x00;
+					config_data[ch] = 0;
+				}
+				switch (config_index)
+				{
+				case 0x00:
+					// MySQL Host
+					memcpy (&mySQL_Host[0], &config_data[0], ch+1);
+					break;
+				case 0x01:
+					// MySQL Username
+					memcpy (&mySQL_Username[0], &config_data[0], ch+1);
+					break;
+				case 0x02:
+					// MySQL Password
+					memcpy (&mySQL_Password[0], &config_data[0], ch+1);
+					break;
+				case 0x03:
+					// MySQL Database
+					memcpy (&mySQL_Database[0], &config_data[0], ch+1);
+					break;
+				case 0x04:
+					// MySQL Port
+					mySQL_Port = atoi (&config_data[0]);
+					break;
+				case 0x05:
+					// Server IP address
+					{
+						if ((config_data[0] == 0x41) || (config_data[0] == 0x61))
+						{
+							struct sockaddr_in pn_in;
+							struct hostent *pn_host;
+							int pn_sockfd, pn_len;
+							char pn_buf[512];
+							char* pn_ipdata;
+
+							printf ("\n** Determining IP address ... ");
+
+							pn_host = gethostbyname ( "www.pioneer2.net" );
+							if (!pn_host) {
+								printf ("Could not resolve www.pioneer2.net\n");
+								printf ("Hit [ENTER]");
+								gets (&dp[0]);
+								exit (1);
+							}
+
+							/* Create a reliable, stream socket using TCP */
+							if ((pn_sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+							{
+								printf ("Unable to create TCP/IP streaming socket.");
+								printf ("Hit [ENTER]");
+								gets (&dp[0]);
+								exit(1);
+							}
+
+							/* Construct the server address structure */
+							memset(&pn_in, 0, sizeof(pn_in)); /* Zero out structure */
+							pn_in.sin_family = AF_INET; /* Internet address family */
+
+							*(unsigned*) &pn_in.sin_addr.s_addr = *(unsigned *) pn_host->h_addr; /* Web Server IP address */
+
+							pn_in.sin_port = htons(80); /* Web Server port */
+
+							/* Establish the connection to the pioneer2.net Web Server ... */
+
+							if (connect(pn_sockfd, (struct sockaddr *) &pn_in, sizeof(pn_in)) < 0)
+							{
+								printf ("\nCannot connect to www.pioneer2.net!");
+								printf ("Hit [ENTER]");
+								gets (&dp[0]);
+								exit(1);
+							}
+
+							/* Process pioneer2.net's response into the serverIP variable. */
+
+							send_to_server ( pn_sockfd, HTTP_REQ );
+							pn_len = recv(pn_sockfd, &pn_buf[0], sizeof(pn_buf) - 1, 0);
+							closesocket (pn_sockfd);
+							pn_buf[pn_len] = 0;
+							pn_ipdata = strstr (&pn_buf[0], "/html");
+							if (!pn_ipdata)
+							{
+								printf ("Failed to determine IP address.\n");
+							}
+							else
+								pn_ipdata += 9;
+
+							convertIPString (pn_ipdata, strlen (pn_ipdata), 0 );
+						}
+						else
+						{
+							convertIPString (&config_data[0], ch+1, 1);
+						}
+					}
+					break;
+				case 0x06:
+					// Welcome Message
+					memcpy (&Welcome_Message[0], &config_data[0], ch+1 );
+					break;
+				case 0x07:
+					// Server Listen Port
+					serverPort = atoi (&config_data[0]);
+					break;
+				case 0x08:
+					// Max Client Connections
+					serverMaxConnections = atoi (&config_data[0]);
+					if ( serverMaxConnections > LOGIN_COMPILED_MAX_CONNECTIONS )
+					{
+						serverMaxConnections = LOGIN_COMPILED_MAX_CONNECTIONS;
+						printf ("This version of the login server has not been compiled to handle more than %u login connections.  Adjusted.\n", LOGIN_COMPILED_MAX_CONNECTIONS );
+					}
+					if (!serverMaxConnections)
+						serverMaxConnections = LOGIN_COMPILED_MAX_CONNECTIONS;
+					break;
+				case 0x09:
+					// Max Ship Connections
+					serverMaxShips = atoi (&config_data[0]);
+					if ( serverMaxShips > SHIP_COMPILED_MAX_CONNECTIONS )
+					{
+						serverMaxShips = SHIP_COMPILED_MAX_CONNECTIONS;
+						printf ("This version of the login server has not been compiled to handle more than %u ship connections.  Adjusted.\n", SHIP_COMPILED_MAX_CONNECTIONS );
+					}
+					if (!serverMaxShips)
+						serverMaxShips = SHIP_COMPILED_MAX_CONNECTIONS;
+					break;
+				case 0x0A:
+					// Override IP address (if specified, this IP will be sent out instead of your own to those who connect)
+					if ((config_data[0] > 0x30) && (config_data[0] < 0x3A))
+					{
+						override_on = 1;
+						*(unsigned *) &overrideIP[0] = *(unsigned *) &serverIP[0];
+						serverIP[0] = 0;
+						convertIPString (&config_data[0], ch+1, 1);							
+					}
+					break;
+				case 0x0B:
+					// Hildebear rate
+					mob_rate[0] = atoi ( &config_data[0] );
+					break;
+				case 0x0C:
+					// Rappy rate
+					mob_rate[1] = atoi ( &config_data[0] );
+					break;
+				case 0x0D:
+					// Lily rate
+					mob_rate[2] = atoi ( &config_data[0] );
+					break;
+				case 0x0E:
+					// Slime rate
+					mob_rate[3] = atoi ( &config_data[0] );
+					break;
+				case 0x0F:
+					// Merissa rate
+					mob_rate[4] = atoi ( &config_data[0] );
+					break;
+				case 0x10:
+					// Pazuzu rate
+					mob_rate[5] = atoi ( &config_data[0] );
+					break;
+				case 0x11:
+					// Dorphon Eclair rate
+					mob_rate[6] = atoi ( &config_data[0] );
+					break;
+				case 0x12:
+					// Kondrieu rate
+					mob_rate[7] = atoi ( &config_data[0] );
+					break;
+				case 0x13:
+					// Global GM name color
+					config_data[6] = hexToByte (&config_data[4]);
+					config_data[7] = hexToByte (&config_data[2]);
+					config_data[8] = hexToByte (&config_data[0]);
+					config_data[9]  = 0xFF;
+					globalName = *(unsigned *) &config_data[6];
+					break;
+				case 0x14:
+					// Local GM name color
+					config_data[6] = hexToByte (&config_data[4]);
+					config_data[7] = hexToByte (&config_data[2]);
+					config_data[8] = hexToByte (&config_data[0]);
+					config_data[9]  = 0xFF;
+					localName = *(unsigned *) &config_data[6];
+					break;
+				case 0x15:
+					// Normal name color
+					config_data[6] = hexToByte (&config_data[4]);
+					config_data[7] = hexToByte (&config_data[2]);
+					config_data[8] = hexToByte (&config_data[0]);
+					config_data[9]  = 0xFF;
+					normalName = *(unsigned *) &config_data[6];
+					break;
+				default:
+					break;
+				}
+				config_index++;
+			}
+		}
+		fclose (fp);
+
+	if (config_index < 0x13)
+	{
+		printf ("tethealla.ini seems to be corrupted.\n");
+		printf ("Hit [ENTER]");
+		gets (&dp[0]);
+		exit (1);
+	}
 	printf ("  OK!\n");
 
 	/* Set this up for later. */
