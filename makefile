@@ -2,7 +2,7 @@
 
 ROOT_DIR = .
 SRC_DIR = src
-SERVER_DIR = server
+SERVER_DIR = install
 ifeq ($(OS),Windows_NT) 
     MYSQL = -L $(SRC_DIR)/mysql/lib -llibmysql
 else
